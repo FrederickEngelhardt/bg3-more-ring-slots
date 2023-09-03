@@ -1,0 +1,1684 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			        xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+					xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    xmlns:System="clr-namespace:System;assembly=mscorlib"
+                    xmlns:ls="clr-namespace:ls;assembly=SharedGUI"
+                    xmlns:noesis="clr-namespace:NoesisGUIExtensions;assembly=Noesis.GUI.Extensions"
+					mc:Ignorable="d">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="../Library/CharacterSheetTemplates.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <!-- Icons -->
+    <BitmapImage x:Key="PrimaryAbilityIcon" UriSource="pack://application:,,,/GustavNoesisGUI;component/Assets/SheetGeneral_c/c_ico_star.png" />
+    <BitmapImage x:Key="BulletPointIconEmpty" UriSource="pack://application:,,,/GustavNoesisGUI;component/Assets/SheetGeneral_c/c_ico_bullet_empty.png" />
+    <BitmapImage x:Key="BulletPointIconFilled" UriSource="pack://application:,,,/GustavNoesisGUI;component/Assets/SheetGeneral_c/c_ico_bullet.png" />
+    <!-- Damage icons -->
+    <BitmapImage x:Key="DamageAcidIcon" UriSource="pack://application:,,,/GustavNoesisGUI;component/Assets/Shared_c/c_ico_dmg_acid.png"/>
+    <BitmapImage x:Key="DamageBluntIcon" UriSource="pack://application:,,,/GustavNoesisGUI;component/Assets/Shared_c/c_ico_dmg_blunt.png"/>
+    <BitmapImage x:Key="DamageColdIcon" UriSource="pack://application:,,,/GustavNoesisGUI;component/Assets/Shared_c/c_ico_dmg_cold.png"/>
+    <BitmapImage x:Key="DamageFireIcon" UriSource="pack://application:,,,/GustavNoesisGUI;component/Assets/Shared_c/c_ico_dmg_fire.png"/>
+    <BitmapImage x:Key="DamageForceIcon" UriSource="pack://application:,,,/GustavNoesisGUI;component/Assets/Shared_c/c_ico_dmg_force.png"/>
+    <BitmapImage x:Key="DamageLightningIcon" UriSource="pack://application:,,,/GustavNoesisGUI;component/Assets/Shared_c/c_ico_dmg_lightning.png"/>
+    <BitmapImage x:Key="DamageNecroticIcon" UriSource="pack://application:,,,/GustavNoesisGUI;component/Assets/Shared_c/c_ico_dmg_necrotic.png"/>
+    <BitmapImage x:Key="DamagePiercingIcon" UriSource="pack://application:,,,/GustavNoesisGUI;component/Assets/Shared_c/c_ico_dmg_piercing.png"/>
+    <BitmapImage x:Key="DamageSlashingIcon" UriSource="pack://application:,,,/GustavNoesisGUI;component/Assets/Shared_c/c_ico_dmg_slashing.png"/>
+    <BitmapImage x:Key="DamageRangedIcon" UriSource="pack://application:,,,/GustavNoesisGUI;component/Assets/Shared/ico_dmg_ranged.png"/>
+
+
+    <Style x:Key="EquipmentSlotStyle_c" TargetType="ListBoxItem">
+        <Setter Property="Template" >
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBoxItem">
+                    <ContentControl x:Name="root" ToolTipService.Placement="Right" Focusable="False" ToolTipService.IsEnabled="{Binding Item,Converter={StaticResource NullToBoolFalseConverter}}">
+                        <ContentControl.ToolTip>
+                            <ls:LSTooltip IsHitTestVisible="False" Content="{Binding Path=DataContext.Item,ElementName=root}" />
+                        </ContentControl.ToolTip>
+                        <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Width="{DynamicResource InvSlotSize}" Height="{DynamicResource InvSlotSize}">
+                            <Control Style="{StaticResource EquipmentSlotTemplateStyle}" Focusable="False"/>
+
+                            <!-- Highlight slot when hovered -->
+                            <Image x:Name="SelectedImg" Source="{StaticResource InvSlot_Selector}" Visibility="Hidden" Stretch="Fill" IsHitTestVisible="False"/>
+
+                            <!-- New item indication -->
+                            <Control Style="{StaticResource NewInventoryCellItemStyle}"/>
+							
+							<Image x:Name="disabledCover" Source="pack://application:,,,/GustavNoesisGUI;component/Assets/Equipment/nonActiveSlot_indicator.png" Visibility="{Binding IsEnabled , Converter={StaticResource BoolToHiddenConverter}}" RenderTransformOrigin="0.5, 0.5">
+							</Image>
+                            <Rectangle Fill="{StaticResource LS_DisabledSlotColor}" Visibility="{Binding IsEnabled , Converter={StaticResource BoolToHiddenConverter}}"/>
+                        </Grid>
+                    </ContentControl>
+
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="SelectedImg" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Height" Value="{DynamicResource InvSlotSize}"/>
+        <Setter Property="Width" Value="{DynamicResource InvSlotSize}"/>
+        <Setter Property="Margin" Value="0 4 0 8"/>
+        <Setter Property="Padding" Value="0"/>
+    </Style>
+
+    <ControlTemplate x:Key="CharacterSheetExpanderToggleButton" TargetType="{x:Type ToggleButton}">
+        <Grid>
+            <Image x:Name="img" Source="pack://application:,,,/GustavNoesisGUI;component/Assets/SheetGeneral_c/c_frame_listitem.png" Stretch="None"/>
+            <ContentPresenter/>
+            <Path Name="Arrow" Width="64" Data="M 0 12 L 12 0 L 24 12 Z" Fill="{DynamicResource LS_PrimaryColor}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ls:LSListBoxItem}}, Path=IsSelected}" Value="True">
+                <Setter Property="Source" Value="pack://application:,,,/GustavNoesisGUI;component/Assets/SheetGeneral_c/c_selector_listitem.png" TargetName="img"/>
+            </DataTrigger>
+            <Trigger Property="IsChecked" Value="true">
+                <Setter TargetName="Arrow" Property="Data" Value="M 0 0 L 12 12 L 24 0 Z"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="false">
+                <Setter TargetName="Arrow" Property="Visibility" Value="Hidden"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="ScrolllessListBox" TargetType="ls:LSListBox">
+        <ItemsPresenter/>
+    </ControlTemplate>
+
+    <Style x:Key="ControllerEquipmentListBoxStyle" TargetType="ls:LSListBox" BasedOn="{StaticResource {x:Type ls:LSListBox}}">
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="KeyboardNavigation.DirectionalNavigation" Value="Continue"/>
+    </Style>
+
+    <Style x:Key="VerticalControllerEquipmentListBoxStyle" TargetType="ls:LSListBox" BasedOn="{StaticResource ControllerEquipmentListBoxStyle}">
+        <Setter Property="ActionPrevEvent" Value="UIUp"/>
+        <Setter Property="ActionNextEvent" Value="UIDown"/>
+    </Style>
+
+    <Style x:Key="HorizontalControllerEquipmentListBoxStyle" TargetType="ls:LSListBox" BasedOn="{StaticResource ControllerEquipmentListBoxStyle}">
+        <Setter Property="ActionPrevEvent" Value="UILeft"/>
+        <Setter Property="ActionNextEvent" Value="UIRight"/>
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="VerticalControllerCharacterSheetListBoxStyle" TargetType="ls:LSListBox" BasedOn="{StaticResource {x:Type ls:LSListBox}}">
+        <Setter Property="Template" Value="{StaticResource ScrolllessListBox}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="ActionPrevEvent" Value="UIUp"/>
+        <Setter Property="ActionNextEvent" Value="UIDown"/>
+        <Setter Property="KeyboardNavigation.DirectionalNavigation" Value="Continue"/>
+        <Setter Property="AutoScrollSelectedIntoView" Value="True"/>
+        <Setter Property="Visibility" Value="Visible"/>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Itemsource.Count}" Value="0">
+                <Setter Property="Visibility" Value="Collapsed"/>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="CharacterSheetSectionHeaderStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{DynamicResource LargeFontSize}" />
+        <Setter Property="Foreground" Value="{DynamicResource LS_InactivePanelFontColor}" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="0,16,0,16" />
+        <Setter Property="Focusable" Value="False" />
+    </Style>
+
+    <Style x:Key="AbilityValueStyle" TargetType="TextBlock" BasedOn="{StaticResource CharacterSheetBaseTextStyle}">
+        <Setter Property="FontSize" Value="{DynamicResource BigFontSize}" />
+        <Setter Property="Margin" Value="0,4,0,0"/>
+        <Setter Property="TextAlignment" Value="Center" />
+    </Style>
+
+    <Style x:Key="AbilityNameStyle" TargetType="TextBlock" BasedOn="{StaticResource CharacterSheetBaseTextStyle}">
+        <Setter Property="FontSize" Value="{DynamicResource LargeFontSize}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="8,4,0,0"/>
+    </Style>
+
+    <Style x:Key="SkillNameStyle" TargetType="TextBlock" BasedOn="{StaticResource CharacterSheetBaseTextStyle}">
+        <Setter Property="Margin" Value="10,0,0,0"/>
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style x:Key="SkillValueStyle" TargetType="TextBlock" BasedOn="{StaticResource CharacterSheetBaseTextStyle}">
+        <Setter Property="Margin" Value="0,0,16,0"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <ControlTemplate x:Key="CharacterSheetDecorativeBoxFrame" TargetType="ContentControl">
+        <ControlTemplate.Resources>
+            <ImageSource x:Key="selectorSource">pack://application:,,,/GustavNoesisGUI;component/Assets/SheetGeneral_c/c_selector_listitem.png</ImageSource>
+        </ControlTemplate.Resources>
+        <Grid Width="772" MinHeight="72"  ToolTip="{StaticResource ManagedTooltip}" ToolTipService.IsEnabled="{Binding Path=ToolTip.Content , Converter={StaticResource NullToBoolFalseConverter}}">
+            <ls:LSNineSliceImage x:Name="img" ImageSource="{DynamicResource selectorSource}" Slices="28,28,28,28" Focusable="False" Opacity="0.3"/>
+            <ContentPresenter/>
+            <ls:LSNineSliceImage x:Name="hl" ImageSource="{DynamicResource selectorSource}" Slices="28,28,28,28" Visibility="Hidden" Focusable="False"/>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ls:LSListBoxItem}}, Path=IsSelected}" Value="True">
+                <Setter Property="Visibility" Value="Visible" TargetName="hl"/>
+            </DataTrigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <Style x:Key="CharacterSheetItemsStyle" TargetType="ls:LSListBoxItem"  BasedOn="{StaticResource {x:Type ls:LSListBoxItem}}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Focusable" Value="True" />
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="Magenta" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="CharacterSheetProgressionsItemsStyle" TargetType="ListBoxItem"  BasedOn="{StaticResource {x:Type ListBoxItem}}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Focusable" Value="True" />
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+            </Trigger>
+            <MultiDataTrigger>
+                <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding Progressions.Count}" Value="1"/>
+                    <Condition Binding="{Binding Progressions[0].Features.Boosts.Count}" Value="0"/>
+                    <Condition Binding="{Binding Progressions[0].Features.Abilities.Count}" Value="0"/>
+                </MultiDataTrigger.Conditions>
+                <MultiDataTrigger.Setters>
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                </MultiDataTrigger.Setters>
+            </MultiDataTrigger>            
+        </Style.Triggers>
+    </Style>
+    
+    <DataTemplate x:Key="CharacterSheetAbilitiesTemplate">
+        <ls:LSListBox Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemContainerStyle="{StaticResource CharacterSheetItemsStyle}" Margin="0,0,0,32">
+            <ls:LSListBoxItem>
+                <ls:LSListBox Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemContainerStyle="{StaticResource CharacterSheetItemsStyle}">
+                    <ToggleButton x:Name="Expander" IsChecked="True" Template="{StaticResource CharacterSheetExpanderToggleButton}" IsEnabled="{Binding Path=Skills.Count, Converter={StaticResource GreaterThanConverter}, ConverterParameter=0}">
+                        <ContentControl ToolTip="{StaticResource ManagedTooltip}">
+                            <StackPanel Orientation="Horizontal">
+                                <Image DockPanel.Dock="Left" Stretch="None" Width="50" Margin="20,0,0,0">
+                                    <Image.Style>
+                                        <Style TargetType="Image">
+                                            <Setter Property="Source" Value="{x:Null}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsPrimary}" Value="True">
+                                                    <Setter Property="Source" Value="{StaticResource PrimaryAbilityIcon}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Image.Style>
+                                </Image>
+                                <TextBlock Text="{Binding Value}" Style="{StaticResource AbilityValueStyle}" Width="86" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Name}" Style="{StaticResource AbilityNameStyle}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </ContentControl>
+                    </ToggleButton>
+                </ls:LSListBox>
+            </ls:LSListBoxItem>
+
+            <ls:LSListBoxItem Visibility="{Binding IsChecked, Converter={StaticResource BoolToCollapsedConverter}, ElementName=Expander}">
+                <ls:LSListBox ItemsSource="{Binding Skills}" Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemContainerStyle="{StaticResource CharacterSheetItemsStyle}">
+                    <ls:LSListBox.ItemTemplate>
+                        <DataTemplate>
+                            <ContentControl Template="{StaticResource CharacterSheetDecorativeBoxFrame}" Focusable="False">
+                                <DockPanel>
+                                    <Image DockPanel.Dock="Left" Width="44" Margin="32,0,0,0" Stretch="None">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Setter Property="Source" Value="{StaticResource BulletPointIconEmpty}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ElementName=ToFill, Path=Text}" Value="FILL">
+                                                        <Setter Property="Source" Value="{StaticResource BulletPointIconFilled}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
+                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Value, StringFormat={}{0:+#;-#;-}}" Style="{StaticResource SkillValueStyle}" Margin="0,0,32,0"/>
+                                    <TextBlock Text="{Binding Name}" Style="{StaticResource SkillNameStyle}"/>
+                                    <TextBlock Name="ToFill" Visibility="Hidden" Text="{Binding Value, StringFormat={}{0:FILL;NOFILL;NOFILL}}"/>
+                                </DockPanel>
+                            </ContentControl>
+                        </DataTemplate>
+                    </ls:LSListBox.ItemTemplate>
+                </ls:LSListBox>
+            </ls:LSListBoxItem>
+
+        </ls:LSListBox>
+    </DataTemplate>
+
+    <Style x:Key="ResistancesVariantIconsStyle" TargetType="ItemsControl">
+        <Setter Property="MaxWidth" Value="180"/>
+        <Setter Property="ItemsControl.ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <WrapPanel/>
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="ItemsControl.ItemTemplate">
+            <Setter.Value>
+                <DataTemplate DataType="ls:VMResistance">
+                    <Image Stretch="Uniform" Width="50" Style="{StaticResource ResistanceImage}" Margin="0,4,0,4"/>
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <DataTemplate x:Key="ResistancesTemplate">
+        <ls:LSListBox x:Name="ResistancePanel" Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" HorizontalAlignment="Center">
+            <b:Interaction.Behaviors>
+                <!-- Don't change this order! -->
+                <ls:CollectionFilterBehavior x:Name="PredicateFullResistance" ItemsSource="{Binding Stats.Resistances}" Predicate="{Binding DataContext.Data.PredicateFullResistance, RelativeSource={RelativeSource AncestorType={x:Type ls:UIWidget}}}"/>
+                <ls:CollectionFilterBehavior x:Name="PredicateNonMagicVulnerable" ItemsSource="{Binding Stats.Resistances}" Predicate="{Binding DataContext.Data.PredicateNonMagicVulnerable, RelativeSource={RelativeSource AncestorType={x:Type ls:UIWidget}}}"/>
+                <ls:CollectionFilterBehavior x:Name="PredicateNonMagicResistant" ItemsSource="{Binding Stats.Resistances}" Predicate="{Binding DataContext.Data.PredicateNonMagicResistant, RelativeSource={RelativeSource AncestorType={x:Type ls:UIWidget}}}"/>
+                <ls:CollectionFilterBehavior x:Name="PredicateNonMagicImmune" ItemsSource="{Binding Stats.Resistances}" Predicate="{Binding DataContext.Data.PredicateNonMagicImmune, RelativeSource={RelativeSource AncestorType={x:Type ls:UIWidget}}}"/>
+                <ls:CollectionFilterBehavior x:Name="PredicateMagicVulnerable" ItemsSource="{Binding Stats.Resistances}" Predicate="{Binding DataContext.Data.PredicateMagicVulnerable, RelativeSource={RelativeSource AncestorType={x:Type ls:UIWidget}}}"/>
+                <ls:CollectionFilterBehavior x:Name="PredicateMagicResistant" ItemsSource="{Binding Stats.Resistances}" Predicate="{Binding DataContext.Data.PredicateMagicResistant, RelativeSource={RelativeSource AncestorType={x:Type ls:UIWidget}}}"/>
+                <ls:CollectionFilterBehavior x:Name="PredicateMagicImmune" ItemsSource="{Binding Stats.Resistances}" Predicate="{Binding DataContext.Data.PredicateMagicImmune, RelativeSource={RelativeSource AncestorType={x:Type ls:UIWidget}}}"/>
+            </b:Interaction.Behaviors>
+            <ls:LSListBox.Resources>
+                <ImageSource x:Key="selectorSource">pack://application:,,,/GustavNoesisGUI;component/Assets/SheetGeneral_c/c_selector_listitem_resistance.png</ImageSource>
+            </ls:LSListBox.Resources>
+
+            <ls:LSListBoxItem Visibility="{Binding Path=(b:Interaction.Behaviors)[0].FilteredItems.Count, ElementName=ResistancePanel, Converter={StaticResource CountToVisibilityConverter}}" Margin="0,0,0,16">
+                <ls:LSListBox ItemsSource="{Binding Path=(b:Interaction.Behaviors)[0].FilteredItems, ElementName=ResistancePanel}" Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}">
+                    <ls:LSListBox.ItemTemplate>
+                        <DataTemplate DataType="ls:VMResistance">
+                            <ContentControl Template="{StaticResource CharacterSheetDecorativeBoxFrame}" HorizontalContentAlignment="Stretch">
+                                <DockPanel VerticalAlignment="Center">
+                                    <Image DockPanel.Dock="Left" Stretch="Uniform" Width="50" Margin="20,0,10,0" Style="{StaticResource ResistanceImage}"/>
+                                    <TextBlock DockPanel.Dock="Right" Style="{StaticResource ResistanceValueStyle}" Margin="0,0,32,0"/>
+                                    <TextBlock Style="{StaticResource ResistanceNameStyle}"/>
+                                </DockPanel>
+                            </ContentControl>
+                        </DataTemplate>
+                    </ls:LSListBox.ItemTemplate>
+                </ls:LSListBox>
+            </ls:LSListBoxItem>
+
+            <!-- These 1 item listboxes are required to make navigation working -->
+            <!-- Please kill it with fire once we have the new controller focusing -->
+
+            <!-- Non-Magical Vulnerable -->
+            <ls:LSListBoxItem x:Name="NonMagicVulnerable" Visibility="{Binding Path=(b:Interaction.Behaviors)[1].FilteredItems.Count, ElementName=ResistancePanel, Converter={StaticResource CountToVisibilityConverter}}">
+                <ls:LSListBox Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}">
+                    <ls:LSListBoxItem>
+                        <ls:LSListBoxItem.ToolTip>
+                            <ls:LSTooltip ContentTemplate="{StaticResource ResistanceTooltipNonmagicalTemplate}" Content="Vulnerable"/>
+                        </ls:LSListBoxItem.ToolTip>
+                        <ContentControl Template="{StaticResource CharacterSheetDecorativeBoxFrame}" HorizontalAlignment="Stretch">
+                            <DockPanel VerticalAlignment="Center" >
+                                <ItemsControl ItemsSource="{Binding Path=(b:Interaction.Behaviors)[1].FilteredItems, ElementName=ResistancePanel}"     DockPanel.Dock="Left" Margin="16,0,10,0" Style="{StaticResource ResistancesVariantIconsStyle}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Source='hb710bce5g9017g4c1bg9330g20a891ce14f6',Converter={StaticResource TranslatedStringConverter}}"                DockPanel.Dock="Right" Margin="0,0,30,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Source='h06dca809gbc26g46b6gb7d4g0a0bb38eb247',Converter={StaticResource TranslatedStringConverter}}"                Style="{StaticResource ResistanceNameStyle}" VerticalAlignment="Center"/>
+                            </DockPanel>
+                        </ContentControl>
+                    </ls:LSListBoxItem>
+                </ls:LSListBox>
+            </ls:LSListBoxItem>
+
+            <!-- Non-Magical Resistant -->
+            <ls:LSListBoxItem x:Name="NonMagicResistant" HorizontalAlignment="Stretch" Visibility="{Binding Path=(b:Interaction.Behaviors)[2].FilteredItems.Count, ElementName=ResistancePanel, Converter={StaticResource CountToVisibilityConverter}}">
+                <ls:LSListBox Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}">
+                    <ls:LSListBoxItem>
+                        <ls:LSListBoxItem.ToolTip>
+                            <ls:LSTooltip ContentTemplate="{StaticResource ResistanceTooltipNonmagicalTemplate}" Content="Resistant"/>
+                        </ls:LSListBoxItem.ToolTip>
+                        <ContentControl Template="{StaticResource CharacterSheetDecorativeBoxFrame}">
+                            <DockPanel VerticalAlignment="Center" >
+                                <ItemsControl ItemsSource="{Binding Path=(b:Interaction.Behaviors)[2].FilteredItems, ElementName=ResistancePanel}" DockPanel.Dock="Left" Margin="16,0,10,0" Style="{StaticResource ResistancesVariantIconsStyle}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Source='h27558299g1099g485eg95f0g4a319139f8f2',Converter={StaticResource TranslatedStringConverter}}"     DockPanel.Dock="Right" Margin="0,0,30,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Source='h06dca809gbc26g46b6gb7d4g0a0bb38eb247',Converter={StaticResource TranslatedStringConverter}}"     Style="{StaticResource ResistanceNameStyle}" VerticalAlignment="Center"/>
+                            </DockPanel>
+                        </ContentControl>
+                    </ls:LSListBoxItem>
+                </ls:LSListBox>
+            </ls:LSListBoxItem>
+
+            <!-- Non-Magical Immune -->
+            <ls:LSListBoxItem x:Name="NonMagicImmune" Visibility="{Binding Path=(b:Interaction.Behaviors)[3].FilteredItems.Count, ElementName=ResistancePanel, Converter={StaticResource CountToVisibilityConverter}}">
+                <ls:LSListBox Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}">
+                    <ls:LSListBoxItem>
+                        <ls:LSListBoxItem.ToolTip>
+                            <ls:LSTooltip ContentTemplate="{StaticResource ResistanceTooltipNonmagicalTemplate}" Content="Immune"/>
+                        </ls:LSListBoxItem.ToolTip>
+                        <ContentControl Template="{StaticResource CharacterSheetDecorativeBoxFrame}">
+                            <DockPanel VerticalAlignment="Center" >
+                                <ItemsControl ItemsSource="{Binding Path=(b:Interaction.Behaviors)[3].FilteredItems, ElementName=ResistancePanel}" DockPanel.Dock="Left" Margin="16,0,10,0" Style="{StaticResource ResistancesVariantIconsStyle}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Source='h1198786dg4063g4010g83d9g8cbd36553077',Converter={StaticResource TranslatedStringConverter}}"     DockPanel.Dock="Right" Margin="0,0,30,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Source='h06dca809gbc26g46b6gb7d4g0a0bb38eb247',Converter={StaticResource TranslatedStringConverter}}"     Style="{StaticResource ResistanceNameStyle}" VerticalAlignment="Center"/>
+                            </DockPanel>
+                        </ContentControl>
+                    </ls:LSListBoxItem>
+                </ls:LSListBox>
+            </ls:LSListBoxItem>
+
+            <!-- Magical Vulnerable -->
+            <ls:LSListBoxItem x:Name="MagicalVulnerable" Visibility="{Binding Path=(b:Interaction.Behaviors)[4].FilteredItems.Count, ElementName=ResistancePanel, Converter={StaticResource CountToVisibilityConverter}}">
+                <ls:LSListBox Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}">
+                    <ls:LSListBoxItem>
+                        <ls:LSListBoxItem.ToolTip>
+                            <ls:LSTooltip ContentTemplate="{StaticResource ResistanceTooltipMagicalTemplate}" Content="Vulnerable"/>
+                        </ls:LSListBoxItem.ToolTip>
+                        <ContentControl Template="{StaticResource CharacterSheetDecorativeBoxFrame}">
+                            <DockPanel VerticalAlignment="Center" >
+                                <ItemsControl ItemsSource="{Binding Path=(b:Interaction.Behaviors)[4].FilteredItems, ElementName=ResistancePanel}" DockPanel.Dock="Left" Margin="16,0,10,0" Style="{StaticResource ResistancesVariantIconsStyle}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Source='hb710bce5g9017g4c1bg9330g20a891ce14f6',Converter={StaticResource TranslatedStringConverter}}"     DockPanel.Dock="Right" Margin="0,0,30,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Source='h9da3be37gadf4g4777ga7e6g6ef0c1f907b0',Converter={StaticResource TranslatedStringConverter}}"     Style="{StaticResource ResistanceNameStyle}" VerticalAlignment="Center"/>
+                            </DockPanel>
+                        </ContentControl>
+                    </ls:LSListBoxItem>
+                </ls:LSListBox>
+            </ls:LSListBoxItem>
+
+            <!-- Magical Resistant -->
+            <ls:LSListBoxItem x:Name="MagicalResistant" Visibility="{Binding Path=(b:Interaction.Behaviors)[5].FilteredItems.Count, ElementName=ResistancePanel, Converter={StaticResource CountToVisibilityConverter}}">
+                <ls:LSListBox Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}">
+                    <ls:LSListBoxItem>
+                        <ls:LSListBoxItem.ToolTip>
+                            <ls:LSTooltip ContentTemplate="{StaticResource ResistanceTooltipMagicalTemplate}" Content="Resistant"/>
+                        </ls:LSListBoxItem.ToolTip>
+                        <ContentControl Template="{StaticResource CharacterSheetDecorativeBoxFrame}">
+                            <DockPanel VerticalAlignment="Center" >
+                                <ItemsControl ItemsSource="{Binding Path=(b:Interaction.Behaviors)[5].FilteredItems, ElementName=ResistancePanel}" DockPanel.Dock="Left" Margin="16,0,10,0" Style="{StaticResource ResistancesVariantIconsStyle}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Source='h27558299g1099g485eg95f0g4a319139f8f2',Converter={StaticResource TranslatedStringConverter}}"     DockPanel.Dock="Right" Margin="0,0,30,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Source='h9da3be37gadf4g4777ga7e6g6ef0c1f907b0',Converter={StaticResource TranslatedStringConverter}}"     Style="{StaticResource ResistanceNameStyle}" VerticalAlignment="Center"/>
+                            </DockPanel>
+                        </ContentControl>
+                    </ls:LSListBoxItem>
+                </ls:LSListBox>
+            </ls:LSListBoxItem>
+
+            <!-- Magical Immune -->
+            <ls:LSListBoxItem x:Name="MagicalImmune" Visibility="{Binding Path=(b:Interaction.Behaviors)[6].FilteredItems.Count, ElementName=ResistancePanel, Converter={StaticResource CountToVisibilityConverter}}">
+                <ls:LSListBox Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}">
+                    <ls:LSListBoxItem>
+                        <ls:LSListBoxItem.ToolTip>
+                            <ls:LSTooltip ContentTemplate="{StaticResource ResistanceTooltipMagicalTemplate}" Content="Immune"/>
+                        </ls:LSListBoxItem.ToolTip>
+                        <ContentControl Template="{StaticResource CharacterSheetDecorativeBoxFrame}">
+                            <DockPanel VerticalAlignment="Center" >
+                                <ItemsControl ItemsSource="{Binding Path=(b:Interaction.Behaviors)[6].FilteredItems, ElementName=ResistancePanel}" DockPanel.Dock="Left" Margin="16,0,10,0" Style="{StaticResource ResistancesVariantIconsStyle}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Source='h1198786dg4063g4010g83d9g8cbd36553077',Converter={StaticResource TranslatedStringConverter}}"     DockPanel.Dock="Right" Margin="0,0,30,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Source='h9da3be37gadf4g4777ga7e6g6ef0c1f907b0',Converter={StaticResource TranslatedStringConverter}}"     Style="{StaticResource ResistanceNameStyle}" VerticalAlignment="Center"/>
+                            </DockPanel>
+                        </ContentControl>
+                    </ls:LSListBoxItem>
+                </ls:LSListBox>
+            </ls:LSListBoxItem>
+        </ls:LSListBox>
+    </DataTemplate>
+
+    <ControlTemplate x:Key="EquipmentStatTemplate">
+        <Grid ToolTip="{StaticResource ManagedTooltip}" ToolTipService.Placement="Left">
+            <Image x:Name="Img" Source="pack://application:,,,/GustavNoesisGUI;component/Assets/Equipment_c/c_stats_hightlight.png" Stretch="None" Opacity="0.3"/>
+            <StackPanel HorizontalAlignment="Center"  VerticalAlignment="Center" Margin="0,2,0,0" Orientation="Vertical">
+                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"  Margin="0,0,0,-10" Text="{Binding Name}" Style="{DynamicResource EquipmentStatFont}"/>
+                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding Value, StringFormat={}{0:+#;-#;+0}}" Style="{DynamicResource EquipmentStatFont}"/>
+            </StackPanel>
+        </Grid>
+    </ControlTemplate>
+
+    <Style x:Key="EquipmentStatStyle" TargetType="ls:LSListBoxItem">
+        <Setter Property="Template" Value="{StaticResource EquipmentStatTemplate}"/>
+        <Setter Property="Height" Value="136"/>
+        <Setter Property="Width" Value="384"/>
+    </Style>
+
+    <DataTemplate x:Key="CharacterSheetRaceTemplate">
+        <ls:LSListBox Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemContainerStyle="{StaticResource CharacterSheetItemsStyle}" ActionPrevEvent="UIUp" ActionNextEvent="UIDown">
+            <ls:LSListBoxItem>
+                <ls:LSListBox Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemContainerStyle="{StaticResource CharacterSheetItemsStyle}" ActionPrevEvent="UIUp" ActionNextEvent="UIDown">
+                    <ToggleButton x:Name="Expander" IsChecked="True" Template="{StaticResource CharacterSheetExpanderToggleButton}">
+                        <ContentControl ToolTip="{StaticResource ManagedTooltip}" Focusable="False">
+                            <TextBlock Margin="40,8,0,0" Foreground="{DynamicResource LS_PrimaryColor}" FontSize="{DynamicResource LargeFontSize}">
+                                <b:Interaction.Behaviors>
+                                    <ls:CtxTransStringRunGeneratorBehavior Source="{Binding NameCTS}" ParamRunStyle="{StaticResource TooltipUnitParamRun}"/>
+                                </b:Interaction.Behaviors>
+                            </TextBlock>
+                        </ContentControl>
+                    </ToggleButton>
+                </ls:LSListBox>
+            </ls:LSListBoxItem>
+
+            <ls:LSListBoxItem x:Name="singleProgressionBoosts" Visibility="Collapsed">
+                <ls:LSListBox ItemsSource="{Binding Features.Boosts}" Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemContainerStyle="{StaticResource CharacterSheetItemsStyle}">
+                    <ls:LSListBox.ItemTemplate>
+                        <DataTemplate>
+                            <ContentControl Template="{StaticResource CharacterSheetDecorativeBoxFrame}">
+                                <DockPanel>
+                                    <Image Source="{StaticResource BulletPointIconFilled}" Stretch="None" Width="48" Margin="16,0,0,0"/>
+                                    <TextBlock Foreground="{DynamicResource LS_PrimaryColor}" TextWrapping="Wrap" ToolTip="{StaticResource ManagedTooltip}" ToolTipService.Placement="Left" Margin="0,10,0,0">
+                                        <b:Interaction.Behaviors>
+                                            <ls:CtxTransStringRunGeneratorBehavior Source="{Binding NameCTS}" ParamRunStyle="{StaticResource TooltipUnitParamRun}"/>
+                                        </b:Interaction.Behaviors>
+                                    </TextBlock>
+                                </DockPanel>
+                            </ContentControl>
+                        </DataTemplate>
+                    </ls:LSListBox.ItemTemplate>
+                </ls:LSListBox>
+            </ls:LSListBoxItem>
+
+            <ls:LSListBoxItem x:Name="singleProgressionAbilities" Visibility="Collapsed">
+                <ls:LSListBox ItemsSource="{Binding Features.Abilities}" Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemContainerStyle="{StaticResource CharacterSheetItemsStyle}">
+                    <ls:LSListBox.ItemTemplate>
+                        <DataTemplate>
+                            <ContentControl Template="{StaticResource CharacterSheetDecorativeBoxFrame}">
+                                <DockPanel>
+                                    <Image Source="{StaticResource BulletPointIconFilled}" Stretch="None" Width="48" Margin="16,0,0,0"/>
+                                    <Control Template="{StaticResource AbilityText}" Margin="0,10,0,0"/>
+                                </DockPanel>
+                            </ContentControl>
+                        </DataTemplate>
+                    </ls:LSListBox.ItemTemplate>
+                </ls:LSListBox>
+            </ls:LSListBoxItem>
+
+        </ls:LSListBox>
+
+        <DataTemplate.Triggers>
+            <MultiDataTrigger>
+                <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding IsChecked, ElementName=Expander}" Value="False"/>
+                </MultiDataTrigger.Conditions>
+                <Setter TargetName="singleProgressionBoosts" Property="Visibility" Value="Visible"/>
+                <Setter TargetName="singleProgressionAbilities" Property="Visibility" Value="Visible"/>
+            </MultiDataTrigger>
+        </DataTemplate.Triggers>
+
+    </DataTemplate>
+
+    <DataTemplate x:Key="CharacterSheetClassTemplate">
+        <DataTemplate.Resources>
+            <System:Double x:Key="MaxTextWidth">680</System:Double>
+        </DataTemplate.Resources>
+        <ls:LSListBox Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemContainerStyle="{StaticResource CharacterSheetItemsStyle}" ActionPrevEvent="UIUp" ActionNextEvent="UIDown">
+            <ls:LSListBoxItem>
+                <ls:LSListBox Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}"  ItemContainerStyle="{StaticResource CharacterSheetItemsStyle}" ActionPrevEvent="UIUp" ActionNextEvent="UIDown">
+                    <ToggleButton x:Name="Expander" IsChecked="True" Template="{StaticResource CharacterSheetExpanderToggleButton}">
+                        <TextBlock ToolTip="{StaticResource ManagedTooltip}" Text="{Binding Name}" Margin="40,6,0,0" Foreground="{DynamicResource LS_PrimaryColor}" FontSize="{DynamicResource LargeFontSize}" />
+                    </ToggleButton>
+                </ls:LSListBox>
+            </ls:LSListBoxItem>
+
+            <ls:LSListBoxItem x:Name="multipleProgressions" Visibility="Collapsed">
+                <ls:LSListBox ItemsSource="{Binding Progressions}" Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemContainerStyle="{StaticResource CharacterSheetItemsStyle}">
+                    <ls:LSListBox.ItemTemplate>
+                        <DataTemplate>
+                            <ContentControl Template="{StaticResource CharacterSheetDecorativeBoxFrame}">
+                                <DockPanel>
+                                    <Image Source="{StaticResource BulletPointIconFilled}" Stretch="None" Width="48" Margin="16,0,0,0"/>
+                                    <TextBlock Foreground="{DynamicResource LS_PrimaryColor}" VerticalAlignment="Center" MaxWidth="{StaticResource MaxTextWidth}" TextWrapping="Wrap">
+                                        <b:Interaction.Behaviors>
+                                            <ls:CtxTransStringRunGeneratorBehavior Source="{Binding NameCTS}" ParamRunStyle="{StaticResource TooltipUnitParamRun}"/>
+                                        </b:Interaction.Behaviors>
+                                    </TextBlock>
+                                </DockPanel>
+                            </ContentControl>
+                        </DataTemplate>
+                    </ls:LSListBox.ItemTemplate>
+                </ls:LSListBox>
+            </ls:LSListBoxItem>
+
+            <ls:LSListBoxItem x:Name="singleProgressionBoosts" Visibility="Collapsed">
+                <ls:LSListBox ItemsSource="{Binding Progressions[0].Features.Boosts}" Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemContainerStyle="{StaticResource CharacterSheetItemsStyle}">
+                    <ls:LSListBox.ItemTemplate>
+                        <DataTemplate>
+                            <ContentControl Template="{StaticResource CharacterSheetDecorativeBoxFrame}">
+                                <DockPanel>
+                                    <Image Source="{StaticResource BulletPointIconFilled}" Stretch="None" Width="48" Margin="16,0,0,0"/>
+                                    <TextBlock Foreground="{DynamicResource LS_PrimaryColor}" MaxWidth="{StaticResource MaxTextWidth}" TextWrapping="Wrap" ToolTip="{StaticResource ManagedTooltip}" ToolTipService.Placement="Left" Margin="0,10,0,0" 
+                                               LineHeight="{StaticResource DefaultFontSizeLineHeight}" LineStackingStrategy="BlockLineHeight" VerticalAlignment="Center">
+                                        <b:Interaction.Behaviors>
+                                            <ls:CtxTransStringRunGeneratorBehavior Source="{Binding NameCTS}" ParamRunStyle="{StaticResource TooltipUnitParamRun}"/>
+                                        </b:Interaction.Behaviors>
+                                    </TextBlock>
+                                </DockPanel>
+                            </ContentControl>
+                        </DataTemplate>
+                    </ls:LSListBox.ItemTemplate>
+                </ls:LSListBox>
+            </ls:LSListBoxItem>
+
+            <ls:LSListBoxItem x:Name="singleProgressionAbilities" Visibility="Collapsed">
+                <ls:LSListBox ItemsSource="{Binding Progressions[0].Features.Abilities}"
+                                Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" 
+                                ItemContainerStyle="{StaticResource CharacterSheetItemsStyle}">
+                    <ls:LSListBox.ItemTemplate>
+                        <DataTemplate>
+                            <ContentControl Template="{StaticResource CharacterSheetDecorativeBoxFrame}">
+                                <DockPanel>
+                                    <Image Source="{StaticResource BulletPointIconFilled}" Stretch="None" Width="48" Margin="16,0,0,0"/>
+                                    <Control Template="{StaticResource AbilityText}" Margin="0,10,0,0" MaxWidth="{StaticResource MaxTextWidth}"/>
+                                </DockPanel>
+                            </ContentControl>
+                        </DataTemplate>
+                    </ls:LSListBox.ItemTemplate>
+                </ls:LSListBox>
+            </ls:LSListBoxItem>            
+            
+        </ls:LSListBox>
+
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsChecked, ElementName=Expander}" Value="False">
+                <Setter TargetName="multipleProgressions" Property="Visibility" Value="Visible"/>
+            </DataTrigger>
+            <MultiDataTrigger>
+                <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding IsChecked, ElementName=Expander}" Value="False"/>
+                    <Condition Binding="{Binding Progressions.Count}" Value="1"/>
+                </MultiDataTrigger.Conditions>
+                <Setter TargetName="multipleProgressions" Property="Visibility" Value="Collapsed"/>
+                <Setter TargetName="singleProgressionBoosts" Property="Visibility" Value="Visible"/>
+                <Setter TargetName="singleProgressionAbilities" Property="Visibility" Value="Visible"/>
+            </MultiDataTrigger>
+        </DataTemplate.Triggers>
+        
+    </DataTemplate>
+
+    <DataTemplate x:Key="CharacterSheetTagTemplate">
+        <ls:LSListBox Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemContainerStyle="{StaticResource CharacterSheetItemsStyle}" ActionPrevEvent="UIUp" ActionNextEvent="UIDown">
+            <ls:LSListBoxItem>
+                <Grid>
+                    <Image x:Name="img" Source="pack://application:,,,/GustavNoesisGUI;component/Assets/SheetGeneral_c/c_frame_listitem.png" Stretch="None"/>
+                    <TextBlock Text="{Binding Name}" Margin="90,10,0,0" Foreground="{DynamicResource LS_PrimaryColor}" FontSize="{DynamicResource LargeFontSize}"/>
+                </Grid>
+            </ls:LSListBoxItem>
+        </ls:LSListBox>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ls:LSListBoxItem}}, Path=IsSelected}" Value="True">
+                <Setter Property="Source" Value="pack://application:,,,/GustavNoesisGUI;component/Assets/SheetGeneral_c/c_selector_listitem.png" TargetName="img"/>
+            </DataTrigger>
+        </DataTemplate.Triggers>        
+    </DataTemplate>
+
+    <ControlTemplate x:Key="NameAndDescriptionTemplate">
+        <StackPanel>
+            <TextBlock x:Name="CharacterName" HorizontalAlignment="Center" Text="{Binding Name}"  Foreground="{DynamicResource LS_PrimaryColor}"  FontWeight="Bold"  FontSize="{DynamicResource TitleFontSize}"/>
+
+            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="0 -16 0 0">
+                <TextBlock Foreground="{DynamicResource LS_ActivePanelFontColor}">
+                    <Run Text="{Binding Stats.Level.Name}"/>
+                    <Run Text="{Binding Stats.Level.Value}"/>
+                </TextBlock>
+                <Control Margin="8,0,0,0" Template="{DynamicResource CharacterClassList}" DataContext="{Binding}" FontWeight="Normal"/>
+            </StackPanel>
+        </StackPanel>
+
+        <ControlTemplate.Triggers>
+            <DataTrigger Value="False">
+                <DataTrigger.Binding>
+                    <MultiBinding Converter="{StaticResource EqualConverter}">
+                        <Binding RelativeSource="{RelativeSource AncestorType={x:Type ls:UIWidget}}" Path="DataContext.CurrentPlayer.UserId"/>
+                        <Binding Path="OwnerUserID"/>
+                    </MultiBinding>
+                </DataTrigger.Binding>
+                <Setter TargetName="CharacterName" Property="Foreground" Value="{StaticResource LS_guestTxtColor}"/>
+            </DataTrigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="sheetElementHolder" TargetType="ls:LSListBoxItem">
+        <Grid>
+            <Image x:Name="Img" Source="pack://application:,,,/GustavNoesisGUI;component/Assets/SheetGeneral_c/c_selector_listitem.png" Stretch="None" Opacity="0.3"/>
+            <ContentPresenter Margin="0,8,0,0"/>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Opacity" Value="1" TargetName="Img"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <DataTemplate x:Key="PassiveItemTemplate">
+        <ContentControl Template="{StaticResource CharacterSheetDecorativeBoxFrame}">
+            <StackPanel Orientation="Horizontal">
+                <Grid>
+                    <Ellipse Fill="{Binding Icon}" Width="88" Height="88" Margin="8,0,8,0">
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Icon}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsToggled}" Value="False">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                    <Image Source="{StaticResource BulletPointIconFilled}" Stretch="None" Width="48" Margin="16,0,0,0">
+                        <Image.Style>
+                            <Style TargetType="Image">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsToggled}" Value="True">
+                                        <Setter Property="Visibility" Value="Hidden"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Image.Style>
+                    </Image>
+                </Grid>
+                <TextBlock Text="{Binding Name}" Foreground="{DynamicResource LS_PrimaryColor}" VerticalAlignment="Center"/>
+            </StackPanel>
+
+        </ContentControl>
+    </DataTemplate>
+
+    <!-- Character Sheet Panel Template -->
+    <ControlTemplate x:Key="CharacterDetailsTemplate" TargetType="Control">
+        <ls:LSListBox x:Name="RootList" Width="{DynamicResource CharacterPanelWidth}" Height="1380" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource CharacterSheetItemsStyle}" ActionPrevEvent="UIUp" ActionNextEvent="UIDown" KeyboardNavigation.DirectionalNavigation="Continue">
+
+            <b:Interaction.Behaviors>
+                <ls:CollectionFilterBehavior x:Name="PassivesFilter" ItemsSource="{Binding Stats.Passives}" Predicate="{Binding Stats.PassivePredicate}"/>
+                <ls:CollectionFilterBehavior x:Name="MetaMagicFilter" ItemsSource="{Binding Stats.Passives}" Predicate="{Binding Stats.MetaMagicPassivePredicate}"/>
+            </b:Interaction.Behaviors>
+
+            <ls:LSListBox.Template>
+                <ControlTemplate TargetType="{x:Type ListBox}">
+                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Visible" Padding="2,0,0,0" Template="{StaticResource ScrollViewerTemplate}">
+                        <ScrollViewer.Resources>
+                            <GridLength x:Key="Top">40</GridLength>
+                            <GridLength x:Key="Bottom">40</GridLength>
+                        </ScrollViewer.Resources>
+                        <ItemsPresenter Width="796"/>
+                    </ScrollViewer>
+                </ControlTemplate>
+            </ls:LSListBox.Template>
+
+            <ls:LSListBoxItem>
+                <ls:LSListBox Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}">
+                    <ls:LSListBoxItem Template="{StaticResource sheetElementHolder}" Content="{Binding Stats.Health}">
+                        <ls:LSListBoxItem.ContentTemplate>
+                            <DataTemplate>
+                                <ContentControl ToolTip="{StaticResource ManagedTooltip}" ToolTipService.Placement="Right">
+                                    <DockPanel>
+                                        <Image Source="pack://application:,,,/GustavNoesisGUI;component/Assets/Shared/ico_health.png" Style="{StaticResource icon}" Margin="24,0,0,0"/>
+                                        <TextBlock Text="{Binding Name}" Style="{StaticResource leftText}"/>
+                                        <TextBlock HorizontalAlignment="Right" Margin="0,0,32,0">
+                                            <Run Text="{Binding Value}"/><Run
+                                            Text="{Binding Max, StringFormat='/{0}'}"/>
+                                        </TextBlock>
+                                    </DockPanel>
+                                </ContentControl>
+                            </DataTemplate>
+                        </ls:LSListBoxItem.ContentTemplate>
+                    </ls:LSListBoxItem>
+
+                    <ls:LSListBoxItem Template="{StaticResource sheetElementHolder}" Content="{Binding Stats.TemporaryHealth}">
+                        <ls:LSListBoxItem.ContentTemplate>
+                            <DataTemplate>
+                                <ContentControl ToolTip="{StaticResource ManagedTooltip}" ToolTipService.Placement="Right">
+                                    <DockPanel>
+                                        <Image Source="pack://application:,,,/GustavNoesisGUI;component/Assets/Shared/ico_health.png" Style="{StaticResource icon}" Margin="24,0,0,0"/>
+                                        <TextBlock Text="{Binding Name}" Style="{StaticResource leftText}"/>
+                                        <TextBlock HorizontalAlignment="Right" Margin="0,0,32,0">
+                                            <Run Text="{Binding Value}"/><Run
+                                            Text="{Binding Max, StringFormat='/{0}'}"/>
+                                        </TextBlock>
+                                    </DockPanel>
+                                </ContentControl>
+                            </DataTemplate>
+                        </ls:LSListBoxItem.ContentTemplate>
+
+                        <ls:LSListBoxItem.Style>
+                            <Style TargetType="ls:LSListBoxItem">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Stats.TemporaryHealth.Max}" Value="0">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ls:LSListBoxItem.Style>
+                    </ls:LSListBoxItem>
+
+                    <ls:LSListBoxItem Template="{StaticResource sheetElementHolder}" Content="{Binding Stats.ArmorClass}">
+                        <ls:LSListBoxItem.ContentTemplate>
+                            <DataTemplate>
+                                <ContentControl ToolTip="{StaticResource ManagedTooltip}" ToolTipService.Placement="Right">
+                                    <DockPanel>
+                                        <Image Source="pack://application:,,,/GustavNoesisGUI;component/Assets/Shared/ico_AC.png" Style="{StaticResource icon}" Margin="24,0,0,0"/>
+                                        <TextBlock Text="{Binding Name}" Style="{StaticResource leftText}"/>
+                                        <TextBlock Text="{Binding Value}" HorizontalAlignment="Right" Margin="0,0,32,0"/>
+                                    </DockPanel>
+                                </ContentControl>
+                            </DataTemplate>
+                        </ls:LSListBoxItem.ContentTemplate>
+                    </ls:LSListBoxItem>
+                    <ls:LSListBoxItem Template="{StaticResource sheetElementHolder}" Content="{Binding Stats.MovementResource}">
+                        <ls:LSListBoxItem.ContentTemplate>
+                            <DataTemplate>
+                                <ContentControl ToolTip="{StaticResource ManagedTooltip}" ToolTipService.Placement="Right">
+                                    <DockPanel>
+                                        <Image Source="pack://application:,,,/GustavNoesisGUI;component/Assets/Shared/ico_speed.png" Style="{StaticResource icon}" Margin="24,0,0,0"/>
+                                        <TextBlock Text="{Binding Source='h19c905a4g8058g4bc9gaaf6gfd89d3f5376d', Converter={StaticResource TranslatedStringConverter}}" Style="{StaticResource leftText}"/>
+                                        <TextBlock Text="{Binding MaxValue, Converter={StaticResource UnitConverter}, ConverterParameter='Distance Short'}" HorizontalAlignment="Right" Margin="0,0,32,0"/>
+                                    </DockPanel>
+                                </ContentControl>
+                            </DataTemplate>
+                        </ls:LSListBoxItem.ContentTemplate>
+                    </ls:LSListBoxItem>
+
+                    <ls:LSListBoxItem Template="{StaticResource sheetElementHolder}" Content="{Binding Stats.Initiative}">
+                        <ls:LSListBoxItem.ContentTemplate>
+                            <DataTemplate>
+                                <ContentControl ToolTip="{StaticResource ManagedTooltip}" ToolTipService.Placement="Right">
+                                    <DockPanel>
+                                        <TextBlock Text="{Binding Source='h8cd254b3ga2a2g47d1g9523g991a3b00eabf', Converter={StaticResource TranslatedStringConverter}}" Style="{StaticResource leftText}"/>
+                                        <TextBlock Text="{Binding Value, StringFormat={}{0:+#;-#;+0}}" HorizontalAlignment="Right" Margin="0,0,32,0"/>
+                                    </DockPanel>
+                                </ContentControl>
+                            </DataTemplate>
+                        </ls:LSListBoxItem.ContentTemplate>
+                    </ls:LSListBoxItem>
+                </ls:LSListBox>
+            </ls:LSListBoxItem>
+
+            <ls:LSListBoxItem>
+                <StackPanel>
+                    <TextBlock Text="{Binding Source='h6406727cg0668g4fdag9ca1g72c679c0aeab',Converter={StaticResource TranslatedStringConverter}}" Style="{StaticResource CharacterSheetSectionHeaderStyle}"/>
+                    <ls:LSListBox ItemsSource="{Binding Stats.Abilities}" Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemContainerStyle="{StaticResource CharacterSheetItemsStyle}" ItemTemplate="{StaticResource CharacterSheetAbilitiesTemplate}"/>
+                </StackPanel>
+            </ls:LSListBoxItem>
+
+            <ls:LSListBoxItem>
+                <ls:LSListBox Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemContainerStyle="{StaticResource CharacterSheetItemsStyle}">
+                    <ls:LSListBoxItem>
+                        <ContentControl Template="{StaticResource CharacterSheetDecorativeBoxFrame}" DataContext="{Binding Stats.ProficiencyBonus}" ToolTip="{StaticResource ManagedTooltip}">
+                            <DockPanel VerticalAlignment="Center">
+                                <TextBlock DockPanel.Dock="Right" Text="{Binding Value, StringFormat=+{0}}" Margin="0,0,32,0"/>
+                                <TextBlock Text="{Binding Name}" Foreground="{DynamicResource LS_PrimaryColor}" Margin="80,0,0,0"/>
+                            </DockPanel>
+                        </ContentControl>
+                    </ls:LSListBoxItem>
+                </ls:LSListBox>
+            </ls:LSListBoxItem>
+
+            <ls:LSListBoxItem>
+                <StackPanel>
+                    <TextBlock HorizontalAlignment="Center" Text="{Binding Source='h3c14af28g2a7ag4d78gb65agcfa055b27eef',Converter={StaticResource TranslatedStringConverter}}" Style="{StaticResource CharacterSheetSectionHeaderStyle}"/>
+                    <ls:LSListBox Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}">
+                        <ls:LSListBox.ItemContainerStyle>
+                            <Style TargetType="ls:LSListBoxItem" BasedOn="{StaticResource CharacterSheetItemsStyle}">
+                                <Setter Property="Template" Value="{StaticResource sheetElementHolder}"/>
+                                <Setter Property="Focusable" Value="True" />
+                                <Setter Property="ContentTemplate">
+                                    <Setter.Value>
+                                        <DataTemplate>
+                                            <ContentControl ToolTip="{StaticResource ManagedTooltip}" ToolTipService.Placement="Right">
+                                                <Grid ToolTip="{StaticResource ManagedTooltip}" ToolTipService.Placement="Right">
+                                                    <TextBlock HorizontalAlignment="Right" Text="{Binding Value, StringFormat=+{0}}" Margin="0,0,32,0"/>
+                                                    <TextBlock HorizontalAlignment="Left" Text="{Binding Name}" Foreground="{DynamicResource LS_PrimaryColor}" Margin="80,0,0,0"/>
+                                                </Grid>
+                                            </ContentControl>
+                                        </DataTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ls:LSListBox.ItemContainerStyle>
+                        <ls:LSListBoxItem Content="{Binding Stats.MeleeAttackBonus}"/>
+                        <ls:LSListBoxItem Content="{Binding Stats.RangedAttackBonus}"/>
+                        <ls:LSListBoxItem Content="{Binding Stats.SpellAttackBonus}"/>
+                        <ls:LSListBoxItem Content="{Binding Stats.SpellDifficultyCheck}"/>
+                    </ls:LSListBox>
+                </StackPanel>
+            </ls:LSListBoxItem>
+
+            <ls:LSListBoxItem Visibility="{Binding Stats.NumActiveResistances, Converter={StaticResource CountToVisibilityConverter}}">
+                <StackPanel>
+                    <TextBlock Text="{Binding Source='h98a4ccfbg20f4g4294g9bf7g624c95711539',Converter={StaticResource TranslatedStringConverter}}" Style="{StaticResource CharacterSheetSectionHeaderStyle}"/>
+                    <ContentControl Content="{Binding .}" ContentTemplate="{StaticResource ResistancesTemplate}"/>
+                </StackPanel>
+            </ls:LSListBoxItem>
+
+            <ls:LSListBoxItem>
+                <StackPanel>
+                    <TextBlock Text="{Binding Source='hf4cf9188gf1ddg4c70g8512g4578eb1e15b6',Converter={StaticResource TranslatedStringConverter}}" Style="{StaticResource CharacterSheetSectionHeaderStyle}"/>
+                    <ls:LSListBox ItemsSource="{Binding Stats.RaceProgressions[0].Progressions}" Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemContainerStyle="{StaticResource CharacterSheetItemsStyle}" ItemTemplate="{StaticResource CharacterSheetRaceTemplate}"/>
+                </StackPanel>
+            </ls:LSListBoxItem>
+
+            <ls:LSListBoxItem>
+                <StackPanel>
+                    <TextBlock Text="{Binding Source='h3f540c7ag325cg447egadbdgb30b8c580fa4',Converter={StaticResource TranslatedStringConverter}}" Style="{StaticResource CharacterSheetSectionHeaderStyle}"/>
+                    <ls:LSListBox ItemsSource="{Binding Stats.ClassProgressions}" Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemContainerStyle="{StaticResource CharacterSheetProgressionsItemsStyle}" ItemTemplate="{StaticResource CharacterSheetClassTemplate}"/>
+                </StackPanel>
+            </ls:LSListBoxItem>
+
+
+            <ls:LSListBoxItem>
+                <StackPanel>
+                    <TextBlock Text="{Binding Source='hebf1e383g9a70g42d6gb3e2g3906281a90b8',Converter={StaticResource TranslatedStringConverter}}" Style="{StaticResource CharacterSheetSectionHeaderStyle}"/>
+                    <ls:LSListBox Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemContainerStyle="{StaticResource CharacterSheetItemsStyle}">
+                        <ls:LSListBoxItem>
+                            <StackPanel>
+                                <ls:LSToggleButton x:Name="ToggleExpander" Template="{StaticResource CharacterSheetExpanderToggleButton}" IsChecked="True" BoundEvent="UIAccept">
+                                    <TextBlock Text="{Binding Stats.Background}" Margin="32,8,0,0"/>
+                                </ls:LSToggleButton>
+                                <TextBlock Text="{Binding Stats.BackgroundDescription}" TextWrapping="Wrap" MaxWidth="720" HorizontalAlignment="Left" Margin="32,0,0,0" Visibility="{Binding IsChecked, ElementName=ToggleExpander, Converter={StaticResource BoolToVisibleConverter}}"/>
+                            </StackPanel>
+                        </ls:LSListBoxItem>
+                    </ls:LSListBox>
+                </StackPanel>
+            </ls:LSListBoxItem>
+
+            <ls:LSListBoxItem>
+                <StackPanel x:Name="PassivesList">
+                    <TextBlock Text="{Binding Source='h74d1322ag4c4dg42eag9272g066b84d0d374',Converter={StaticResource TranslatedStringConverter}}" Style="{StaticResource CharacterSheetSectionHeaderStyle}"/>
+                    <ls:LSListBox ItemsSource="{Binding Path=(b:Interaction.Behaviors)[0].FilteredItems, ElementName=RootList}" Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemContainerStyle="{StaticResource CharacterSheetItemsStyle}" ItemTemplate="{StaticResource PassiveItemTemplate}"/>
+                </StackPanel>
+            </ls:LSListBoxItem>
+
+            <ls:LSListBoxItem>
+                <StackPanel x:Name="MetaMagicList">
+                    <TextBlock Text="{Binding Source='h185b7884g3cddg4329g8061gae91ccfcb4aa',Converter={StaticResource TranslatedStringConverter}}" Style="{StaticResource CharacterSheetSectionHeaderStyle}"/>
+                    <ls:LSListBox ItemsSource="{Binding Path=(b:Interaction.Behaviors)[1].FilteredItems, ElementName=RootList}" Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemContainerStyle="{StaticResource CharacterSheetItemsStyle}" ItemTemplate="{StaticResource PassiveItemTemplate}"/>
+                </StackPanel>
+            </ls:LSListBoxItem>
+
+            <ls:LSListBoxItem>
+                <StackPanel>
+                    <TextBlock Text="{Binding Source='h1e1b19ffgb85dg4765g9491g35135fd3e145',Converter={StaticResource TranslatedStringConverter}}" Style="{StaticResource CharacterSheetSectionHeaderStyle}"/>
+                    <ls:LSListBox ItemsSource="{Binding Tags}" Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemContainerStyle="{StaticResource CharacterSheetItemsStyle}" ItemTemplate="{StaticResource CharacterSheetTagTemplate}"/>
+                </StackPanel>
+            </ls:LSListBoxItem>
+            <ls:LSListBoxItem>
+                <ls:LSListBoxItem.Resources>
+                    <DataTemplate x:Key="resourceTemplate">
+                        <Grid>
+                            <ContentControl ToolTip="{StaticResource ManagedTooltip}" ToolTipService.Placement="Right">
+                                <Grid>
+                                    <TextBlock Text="{Binding Name}" HorizontalAlignment="Left" Margin="24,0,0,0"/>
+                                    <ls:LSActionPointResources x:Name="ResourcePoints" ToolTipService.Placement="Top" ToolTip="{StaticResource ManagedTooltip}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,24,6" MaxActionPoints="{Binding MaxValue}" AvailableActionPoints="{Binding Value}"
+                                            MaxActionPointGroups="0" ActionPointSize="48" SmallActionPointSize="25" ActionPointGroupSize="200" HighlightedActionPoints="0" Style="{DynamicResource ActionResourcesTemplateSelector}"/>
+                                </Grid>
+                            </ContentControl>
+                        </Grid>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding TypeId}" Value="SpellSlot">
+                                <Setter TargetName="ResourcePoints" Property="Margin" Value="0,12,24,0"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding TypeId}" Value="WarlockSpellSlot">
+                                <Setter TargetName="ResourcePoints" Property="Margin" Value="0,12,24,0"/>
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate>
+                    <Style x:Key="resourceContainerStyle" TargetType="ls:LSListBoxItem">
+                        <Setter Property="Template" Value="{StaticResource sheetElementHolder}"/>
+                        <Setter Property="ContentTemplate" Value="{StaticResource resourceTemplate}"/>
+                    </Style>
+                </ls:LSListBoxItem.Resources>
+                <StackPanel>
+                    <TextBlock Text="{Binding Source='h397a395bg68f0g4d89gadc0gcdc7400fd17d',Converter={StaticResource TranslatedStringConverter}}" Style="{StaticResource CharacterSheetSectionHeaderStyle}"/>
+                    <ls:LSListBox Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}">
+                        <ls:LSListBoxItem>
+                            <ls:LSListBox Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemsSource="{Binding Stats.ActionResources}" ItemContainerStyle="{StaticResource resourceContainerStyle}" HorizontalAlignment="Center"/>
+                        </ls:LSListBoxItem>
+                        <ls:LSListBoxItem>
+                            <ls:LSListBox Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemsSource="{Binding Stats.SpellSlots}" HorizontalAlignment="Center">
+                                <ls:LSListBox.ItemContainerStyle>
+                                    <Style TargetType="ls:LSListBoxItem" BasedOn="{StaticResource resourceContainerStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding MaxValue}" Value="0">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ls:LSListBox.ItemContainerStyle>
+                            </ls:LSListBox>
+                        </ls:LSListBoxItem>
+                    </ls:LSListBox>
+                </StackPanel>
+
+            </ls:LSListBoxItem>
+
+            <ls:LSListBoxItem x:Name="StatusEffectsHolder">
+                <StackPanel MinHeight="400">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel" >
+                            <Setter Property="Visibility" Value="Visible"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding StatusEffects.Count}" Value="0">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+
+                    <TextBlock Text="{Binding Source='h3baf1fe2g7d16g4d77gbc35gc17a90fb27d6',Converter={StaticResource TranslatedStringConverter}}" Style="{StaticResource CharacterSheetSectionHeaderStyle}" />
+                    <ls:LSListBox Style="{StaticResource VerticalControllerCharacterSheetListBoxStyle}" ItemsSource="{Binding StatusEffects}">
+                        <ls:LSListBox.ItemContainerStyle>
+                            <Style TargetType="ls:LSListBoxItem">
+                                <Setter Property="Template" Value="{StaticResource sheetElementHolder}"/>
+                                <Setter Property="ContentTemplate">
+                                    <Setter.Value>
+                                        <DataTemplate>
+                                            <ContentControl ToolTip="{StaticResource ManagedTooltip}">
+                                                <DockPanel>
+                                                    <Ellipse Width="48" Height="48" Fill="{Binding Icon}" HorizontalAlignment="Left" Margin="32,-4,0,0"/>
+                                                    <TextBlock Text="{Binding Name}" Style="{StaticResource leftText}"/>
+                                                    <TextBlock Text="{Binding Duration}" HorizontalAlignment="Right" Margin="0,0,32,0">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock" BasedOn="{StaticResource rightText}">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Duration}" Value="-1">
+                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding Duration}" Value="0">
+                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </DockPanel>
+                                            </ContentControl>
+                                        </DataTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ls:LSListBox.ItemContainerStyle>
+                    </ls:LSListBox>
+                </StackPanel>
+
+                <b:Interaction.Triggers>
+                    <b:DataTrigger Binding="{Binding StatusEffects.Count}" Value="0" >
+                        <b:ChangePropertyAction PropertyName="Visibility" Value="Collapsed" />
+                    </b:DataTrigger>
+
+                    <b:PropertyChangedTrigger Binding="{Binding StatusEffects.Count}">
+                        <b:Interaction.Behaviors>
+                            <b:ConditionBehavior>
+                                <b:ConditionalExpression>
+                                    <b:ComparisonCondition LeftOperand="{Binding StatusEffects.Count}" Operator="NotEqual" RightOperand="0" />
+                                </b:ConditionalExpression>
+                            </b:ConditionBehavior>
+                        </b:Interaction.Behaviors>
+                        <b:ChangePropertyAction PropertyName="Visibility" Value="Visible" />
+                    </b:PropertyChangedTrigger>
+
+                </b:Interaction.Triggers>
+            </ls:LSListBoxItem>
+
+        </ls:LSListBox>
+    </ControlTemplate>
+
+    <!-- Spellbook -->
+    <Style x:Key="SpellBookSlot" TargetType="ls:LSButton">
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ls:LSButton">
+                    <Grid>
+                        <Rectangle Fill="{Binding Icon}" Width="108" Height="108"/>
+                        <TextBlock Text="{Binding SpellSlotLevel, Converter={StaticResource DecimalToRomanConverter}}" Margin="0,0,8,4" Foreground="{StaticResource LS_specialTxtColor}" VerticalAlignment="Bottom" HorizontalAlignment="Right" Height="35" FontSize="32" FontWeight="Bold" noesis:Text.Stroke="#FF000000" noesis:Text.StrokeThickness="5"/>
+                        <Border x:Name="NotPreparedFrame" BorderBrush="#bcbcbc" Background="#aa000000" BorderThickness="0" Visibility="Hidden"/>
+                        <Border x:Name="PreparedFrame" BorderBrush="#bcbcbc" BorderThickness="4" Visibility="Hidden"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding NeedsActivation}" Value="True"/>
+                                <Condition Binding="{Binding Activated}" Value="True"/>
+                            </MultiDataTrigger.Conditions>
+                            <MultiDataTrigger.Setters>
+                                <Setter Property="Visibility" Value="Visible" TargetName="PreparedFrame"/>
+                            </MultiDataTrigger.Setters>
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding NeedsActivation}" Value="True"/>
+                                <Condition Binding="{Binding Activated}" Value="False"/>
+                            </MultiDataTrigger.Conditions>
+                            <MultiDataTrigger.Setters>
+                                <Setter Property="Visibility" Value="Visible" TargetName="NotPreparedFrame"/>
+                            </MultiDataTrigger.Setters>
+                        </MultiDataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <DataTemplate x:Key="SpellTemplate">
+        <ls:LSButton Style="{StaticResource SpellBookSlot}" Command="{Binding DataContext.ToggleCharacterAction, RelativeSource={RelativeSource AncestorType={x:Type ls:UIWidget}}}" CommandParameter="{Binding}" Focusable="False" ToolTip="{StaticResource ManagedTooltip}" ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="88" ToolTipService.VerticalOffset="88" />
+    </DataTemplate>
+    
+    <DataTemplate x:Key="SpellGroupTemplate" DataType="{x:Type ls:VMActionGroup}">
+        <StackPanel Margin="20,6,0,4" >
+            <Grid Width="724" HorizontalAlignment="Left">
+                <Grid.Resources>
+                    <ControlTemplate x:Key="slotsProgressBar" TargetType="ls:LSProgressBar">
+                        <Border Name="PART_Track" ClipToBounds="True">
+                            <StackPanel Orientation="Horizontal">
+                                <Rectangle Name="PART_Indicator">
+                                    <Rectangle.Fill>
+                                        <ImageBrush x:Name="ImgValue" ImageSource="pack://application:,,,/GustavNoesisGUI;component/Assets/SpellBook_c/c_ico_spellSlot_available.png" TileMode="Tile" ViewportUnits="Absolute" Viewport="0,0,40,40" />
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                                <Rectangle Name="PART_SubIndicator">
+                                    <Rectangle.Fill>
+                                        <ImageBrush x:Name="ImgCost" ImageSource="pack://application:,,,/GustavNoesisGUI;component/Assets/SpellBook_c/c_ico_spellSlot_available.png" TileMode="Tile" ViewportUnits="Absolute" Viewport="0,0,40,40" />
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                                <Rectangle Name="PART_IndicatorRemaining">
+                                    <Rectangle.Fill>
+                                        <ImageBrush x:Name="ImgEmpty" ImageSource="pack://application:,,,/GustavNoesisGUI;component/Assets/SpellBook_c/c_ico_spellSlot_used.png" TileMode="Tile" ViewportUnits="Absolute" Viewport="0,0,40,40" />
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                            </StackPanel>
+                        </Border>
+                    </ControlTemplate>
+                    <ControlTemplate x:Key="warlockSlotsProgressBar" TargetType="ls:LSProgressBar">
+                        <Border Name="PART_Track" ClipToBounds="True">
+                            <StackPanel Orientation="Horizontal">
+                                <Rectangle Name="PART_Indicator">
+                                    <Rectangle.Fill>
+                                        <ImageBrush x:Name="ImgValue" ImageSource="pack://application:,,,/GustavNoesisGUI;component/Assets/SpellBook_c/c_ico_spellSlot_warlock.png" TileMode="Tile" ViewportUnits="Absolute" Viewport="0,0,40,40" />
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                                <Rectangle Name="PART_SubIndicator">
+                                    <Rectangle.Fill>
+                                        <ImageBrush x:Name="ImgCost" ImageSource="pack://application:,,,/GustavNoesisGUI;component/Assets/SpellBook_c/c_ico_spellSlot_warlock.png" TileMode="Tile" ViewportUnits="Absolute" Viewport="0,0,40,40" />
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                                <Rectangle Name="PART_IndicatorRemaining">
+                                    <Rectangle.Fill>
+                                        <ImageBrush x:Name="ImgEmpty" ImageSource="pack://application:,,,/GustavNoesisGUI;component/Assets/SpellBook_c/c_ico_spellSlot_used.png" TileMode="Tile" ViewportUnits="Absolute" Viewport="0,0,40,40" />
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                            </StackPanel>
+                        </Border>
+                    </ControlTemplate>
+                </Grid.Resources>
+
+                <TextBlock Text="{Binding Name}" Foreground="{DynamicResource LS_InfoColor1}" FontSize="{DynamicResource MediumFontSize}" HorizontalAlignment="Left"/>
+
+                <ItemsControl ItemsSource="{Binding GroupResources}" HorizontalAlignment="Right" Focusable="False">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <ls:LSProgressBar Minimum="0" Height="40">
+                                <ls:LSProgressBar.Style>
+                                    <Style TargetType="ls:LSProgressBar">
+                                        <Setter Property="Maximum" Value="{Binding MaxValue}" />
+                                        <Setter Property="Value" Value="{Binding Value}" />
+                                        <Setter Property="SubValue" Value="0" />
+                                        <Setter Property="Width" Value="{Binding MaxValue, Converter={StaticResource MultiplierConverter}, ConverterParameter=40}" />
+                                        <Setter Property="Template" Value="{StaticResource slotsProgressBar}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding TypeId}" Value="WarlockSpellSlot">
+                                                <Setter Property="Template" Value="{StaticResource warlockSlotsProgressBar}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ls:LSProgressBar.Style>
+                            </ls:LSProgressBar>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+            <Grid >
+                <ls:LSListBox ItemsSource="{Binding Actions}" ItemTemplate="{StaticResource SpellTemplate}" >
+                    <ls:LSListBox.Template>
+                        <ControlTemplate TargetType="{x:Type ListBox}">
+                            <ItemsPresenter />
+                        </ControlTemplate>
+                    </ls:LSListBox.Template>
+                    <ls:LSListBox.ItemContainerStyle>
+                        <Style TargetType="ls:LSListBoxItem" BasedOn="{StaticResource {x:Type ls:LSListBoxItem}}">
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Setter Property="Padding" Value="0" />                            
+                        </Style>
+                    </ls:LSListBox.ItemContainerStyle>
+                    <ls:LSListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <ls:LSGrid ContainerData="{Binding}" AutoIndex="True"
+                                       Columns="6" Rows="1"
+                                       ExtendedRows="False"
+                                       CellWidth="{DynamicResource InvSlotSize}" CellHeight="{DynamicResource InvSlotSize}" 
+                                       VerticalSpacing="{DynamicResource InvSpacing}" HorizontalSpacing="{DynamicResource InvSpacing}" 
+                                       ActionUpEvent="UIUp" ActionDownEvent="UIDown" ActionRightEvent="UIRight" ActionLeftEvent="UILeft"/>
+                        </ItemsPanelTemplate>
+                    </ls:LSListBox.ItemsPanel>
+                </ls:LSListBox>
+            </Grid>
+        </StackPanel>
+    </DataTemplate>
+
+    <ControlTemplate x:Key="SpellContentTemplate">
+        <Grid VerticalAlignment="Top" HorizontalAlignment="Center" Height="{TemplateBinding Height}" Width="{TemplateBinding Width}"
+              d:DataContext="{d:DesignInstance {x:Type ls:Character}, IsDesignTimeCreatable=True}">
+            <ls:LSListBox x:Name="SpellGroupList" Margin="80,0,0,0" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.ScrollUnit="Pixel" VirtualizingPanel.VirtualizationMode="Recycling"
+                          ItemsSource="{Binding SpellsAndActions}"
+                          AlternationCount="{Binding SpellsAndActions.Count}"
+                          ItemTemplate="{StaticResource SpellGroupTemplate}"
+                          ActionPrevEvent="UIUp" ActionNextEvent="UIDown">
+                <ls:LSListBox.Template>
+                    <ControlTemplate TargetType="{x:Type ls:LSListBox}">
+                        <ls:LSScrollViewer Style="{DynamicResource BookmarkScrollViewer}" BookmarkSource="{Binding ElementName=SpellGroupList}" Padding="{TemplateBinding Padding}">
+                            <ls:LSScrollViewer.Resources>
+                                <GridLength x:Key="Top">50</GridLength>
+                                <GridLength x:Key="Bottom">50</GridLength>
+                            </ls:LSScrollViewer.Resources>
+                            <ItemsPresenter />
+                        </ls:LSScrollViewer>
+                    </ControlTemplate>
+                </ls:LSListBox.Template>
+                <ls:LSListBox.ItemContainerStyle>
+                    <Style TargetType="ls:LSListBoxItem" BasedOn="{StaticResource {x:Type ls:LSListBoxItem}}">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Padding" Value="0"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="BorderBrush" Value="Transparent"/>
+                            </Trigger>
+                            <DataTrigger Binding="{Binding Actions.Count}" Value="0">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ls:LSListBox.ItemContainerStyle>
+                <ls:LSListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <ls:LSVirtualizingStackPanel Orientation="Vertical">
+                            <b:Interaction.Triggers>
+                                <b:EventTrigger EventName="Loaded">
+                                    <b:ControlStoryboardAction Storyboard="{StaticResource AnimReset}"/>
+                                </b:EventTrigger>
+                                <b:TimerTrigger EventName="Loaded" MillisecondsPerTick="{Binding (ItemsControl.AlternationIndex), RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContentControl}, AncestorLevel=4}, Converter={StaticResource MultiplierConverter}, ConverterParameter=100}" TotalTicks="1">
+                                    <b:ControlStoryboardAction Storyboard="{StaticResource FadeContentIn}"/>
+                                </b:TimerTrigger>
+                            </b:Interaction.Triggers>
+                        </ls:LSVirtualizingStackPanel>
+                    </ItemsPanelTemplate>
+                </ls:LSListBox.ItemsPanel>
+                <b:Interaction.Triggers>
+                    <b:EventTrigger EventName="LocalFocusChanged">
+                        <ls:LSPlaySound Sound="UI_Shared_Hover" />
+                    </b:EventTrigger>
+                </b:Interaction.Triggers>
+            </ls:LSListBox>
+        </Grid>
+    </ControlTemplate>
+
+    <!-- Shared set of framing elements for various screens, e.g. Inventory, PartyCharacterSheet, CharacterOverview -->
+    <ControlTemplate x:Key="StandardFraming" TargetType="ContentControl">
+        <!-- Outer full screen grid adding black borders left and right if in non 16:9 ratio -->
+        <ContentControl Template="{StaticResource StdFrameContentTemplate}" Background="{DynamicResource LS_PanelBackground}">
+            <Grid x:Name="ContentFrame">
+                <Image Source="pack://application:,,,/GustavNoesisGUI;component/Assets/Shared/mainpane_vignette.png" Stretch="Fill"/>
+                <ContentPresenter/>
+                <Control Template="{DynamicResource HeaderInspirationPointsGold}" VerticalAlignment="Top" HorizontalAlignment="Right" DataContext="{Binding CurrentPlayer}" Margin="0,24,120,0"/>
+            </Grid>
+        </ContentControl>
+
+    </ControlTemplate>
+
+    <Style x:Key="SelectedEquipmentSlotTextBlockStyle_c" TargetType="TextBlock" BasedOn="{StaticResource SelectedEquipmentSlotTextBlockStyle}">
+        <Setter Property="FontSize" Value="{DynamicResource MediumFontSize}"/>
+        <Setter Property="Foreground" Value="{DynamicResource LS_PrimaryColor}"/>
+    </Style>
+
+    <Style x:Key="EquipmentStatFont" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{DynamicResource MediumFontSize}"/>
+        <Setter Property="Foreground" Value="{DynamicResource LS_PrimaryColor}"/>
+    </Style>
+
+    <DataTemplate x:Key="EquipmentTemplate_c">
+        <Grid x:Name="EquipmentPanel" Width="{StaticResource CharacterPanelWidth}" ls:TooltipExtender.Owner="{Binding .}">
+            <b:Interaction.Triggers>
+                <b:EventTrigger EventName="Loaded">
+                    <b:InvokeCommandAction Command="{Binding DataContext.HideAvailableEquipmentCommand, RelativeSource={RelativeSource AncestorType={x:Type ls:UIWidget}}}" CommandParameter="{Binding Equipment}"/>
+                </b:EventTrigger>
+            </b:Interaction.Triggers>
+
+            <ls:LSPaperdoll EntityRef="{Binding EntityHandle}" Width="840" Height="1559" UseCombatPose="True" VerticalAlignment="Top" Margin="0,182,0,0" RenderScale="{Binding DataContext.Data.RenderScale, RelativeSource={RelativeSource AncestorType={x:Type ls:UIWidget}}}"/>
+            <Image VerticalAlignment="Top" HorizontalAlignment="Center" Stretch="None" Source="pack://application:,,,/GustavNoesisGUI;component/Assets/Equipment_c/c_characterArch_state1.png"/>
+            <Image VerticalAlignment="Top" HorizontalAlignment="Center" Style="{DynamicResource AvatarCrownImageStyle}" Margin="0 -50 0 0"/>
+
+            <Control VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0 175 70 0" Template="{DynamicResource CharacterPanelGold}" DataContext="{Binding Inventory.Gold, Mode=OneWay, StringFormat={}{0:N0}}"
+                     Visibility="{Binding Equipment.ShowAvailableEquipment, Converter={StaticResource BoolToHiddenConverter}}" Foreground="{DynamicResource LS_InfoColor1}"/>
+
+            <Control VerticalAlignment="Top" HorizontalAlignment="Center" DataContext="{Binding Stats.ClassList[0]}" Template="{DynamicResource ClassIconSmall}" Margin="0,115,0,0"/>
+            <Control Margin="0,225,0,0" Template="{DynamicResource NameAndDescriptionTemplate}"/>
+
+            <ls:LSInputBinding BoundEvent="UICancel" IsEnabled="{Binding Equipment.ShowAvailableEquipment}" Command="{Binding DataContext.HideAvailableEquipmentCommand, RelativeSource={RelativeSource AncestorType={x:Type ls:UIWidget}}}" CommandParameter="{Binding Equipment}" TriggerOnRelease="True"/>
+
+            <Image Stretch="None" Source="pack://application:,,,/GustavNoesisGUI;component/Assets/Equipment_c/c_characterArch_state2.png" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0 47 0 0"
+                   Visibility="{Binding Equipment.ShowAvailableEquipment, Converter={StaticResource BoolToVisibleConverter}, ConverterParameter=False}"/>
+
+            
+            <ls:LSListBox HorizontalAlignment="Center" Margin="-4 233 -4 0" Style="{StaticResource VerticalControllerEquipmentListBoxStyle}" ActionPrevEvent="UIUp" ActionNextEvent="UIDown" >
+                <!-- Equipment part -->
+                <ls:LSListBoxItem VerticalAlignment="Top" HorizontalAlignment="Center" Background="Transparent" BorderBrush="Transparent" >
+                    
+                    <ls:LSListBox Style="{StaticResource HorizontalControllerEquipmentListBoxStyle}" Margin="36,16,36,0">
+
+                        <!-- Left panel -->
+                        <ls:LSListBoxItem DataContext="{Binding Equipment}" VerticalAlignment="Top" Width="170" Margin="0,110,0,0">
+                            <ls:LSListBox Style="{StaticResource VerticalControllerEquipmentListBoxStyle}">
+
+                                <ls:LSListBoxItem HorizontalAlignment="Left" >
+                                    <ls:LSListBox Style="{StaticResource VerticalControllerEquipmentListBoxStyle}" ItemContainerStyle="{StaticResource EquipmentSlotStyle_c}" HorizontalAlignment="Left">
+                                        <b:Interaction.Triggers>
+                                            <b:EventTrigger EventName="LocalFocusChanged">
+                                                <b:InvokeCommandAction Command="{Binding DataContext.UpdateEquipmentSlotNewFlagCommand, RelativeSource={RelativeSource AncestorType={x:Type ls:UIWidget}}}" 
+                                                                       CommandParameter="{Binding Path=SelectedItem.DataContext, RelativeSource={RelativeSource AncestorType=ls:LSListBox}}"/>
+                                            </b:EventTrigger>
+                                        </b:Interaction.Triggers>
+                                        <ls:LSListBoxItem DataContext="{Binding Helmet}"/>
+                                        <ls:LSListBoxItem DataContext="{Binding Breast}"/>
+                                        <ls:LSListBoxItem DataContext="{Binding Gloves}"/>
+                                        <ls:LSListBoxItem DataContext="{Binding Underwear}"  />
+                                        <ls:LSListBoxItem DataContext="{Binding Boots}" />
+                                    </ls:LSListBox>
+                                </ls:LSListBoxItem>
+
+                                <ls:LSListBoxItem HorizontalAlignment="Left" Margin="0,12,0,0">
+                                    <ls:LSListBox Style="{StaticResource VerticalControllerEquipmentListBoxStyle}" ItemContainerStyle="{StaticResource EquipmentSlotStyle_c}">
+                                        <b:Interaction.Triggers>
+                                            <b:EventTrigger EventName="LocalFocusChanged">
+                                                <b:InvokeCommandAction Command="{Binding DataContext.UpdateEquipmentSlotNewFlagCommand, RelativeSource={RelativeSource AncestorType={x:Type ls:UIWidget}}}" 
+                                                                       CommandParameter="{Binding Path=SelectedItem.DataContext, RelativeSource={RelativeSource AncestorType=ls:LSListBox}}"/>
+                                            </b:EventTrigger>
+                                        </b:Interaction.Triggers>
+                                        <ls:LSListBoxItem DataContext="{Binding MeleeMainHand}"/>
+                                        <ls:LSListBoxItem DataContext="{Binding MeleeOffHand}"/>
+                                    </ls:LSListBox>
+                                </ls:LSListBoxItem>
+                            </ls:LSListBox>
+                        </ls:LSListBoxItem>
+
+                        <!-- Available Equipment (Middle part) -->
+                        <ls:LSListBoxItem VerticalAlignment="Top" Width="570" Visibility="{Binding Equipment.ShowAvailableEquipment, Converter={StaticResource BoolToVisibleConverter}, ConverterParameter=True}">
+                            <Grid>
+                                <TextBlock VerticalAlignment="Top" HorizontalAlignment="Center" DataContext="{Binding Equipment}" Style="{StaticResource SelectedEquipmentSlotTextBlockStyle_c}"/>
+
+                                <ScrollViewer HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0, 110, 0, 0" Height="868" Template="{DynamicResource ScrollViewerTemplate}">
+                                    <ItemsControl Template="{StaticResource AvailableEquipmentGrid}">
+                                        <ItemsControl.Resources>
+                                            <System:UInt32 x:Key="invRows">7</System:UInt32>
+                                            <System:UInt32 x:Key="invCols">4</System:UInt32>
+                                        </ItemsControl.Resources>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </Grid>
+                        </ls:LSListBoxItem>
+
+                        <!-- Right panel -->
+                        <ls:LSListBoxItem DataContext="{Binding Equipment}" VerticalAlignment="Top" Width="300" Margin="-16,110,0,0">
+                            <ls:LSListBox Style="{StaticResource VerticalControllerEquipmentListBoxStyle}">i
+
+                                <ls:LSListBoxItem HorizontalAlignment="Left" Padding="0">
+                                    <ls:LSListBox Style="{StaticResource VerticalControllerEquipmentListBoxStyle}" ItemContainerStyle="{StaticResource EquipmentSlotStyle_c}">
+                                        <b:Interaction.Triggers>
+                                            <b:EventTrigger EventName="LocalFocusChanged">
+                                                <b:InvokeCommandAction Command="{Binding DataContext.UpdateEquipmentSlotNewFlagCommand, RelativeSource={RelativeSource AncestorType={x:Type ls:UIWidget}}}" CommandParameter="{Binding Path=SelectedItem.DataContext, RelativeSource={RelativeSource AncestorType=ls:LSListBox}}"/>
+                                            </b:EventTrigger>
+                                        </b:Interaction.Triggers>
+                                        <ls:LSListBoxItem DataContext="{Binding Cloak}"/>
+                                        <ls:LSListBoxItem DataContext="{Binding Amulet}"/>
+                                        <ls:LSListBoxItem DataContext="{Binding Ring}"/>
+                                        <ls:LSListBoxItem DataContext="{Binding Ring2}"/>
+                                        <ls:LSListBoxItem DataContext="{Binding Ring3}"/>
+                                        <ls:LSListBoxItem DataContext="{Binding MusicalInstrument}"/>
+                                    </ls:LSListBox>
+                                </ls:LSListBoxItem>
+
+                                <ls:LSListBoxItem HorizontalAlignment="Left" Margin="0,12,0,0" Padding="0">
+                                    <ls:LSListBox Style="{StaticResource VerticalControllerEquipmentListBoxStyle}" ItemContainerStyle="{StaticResource EquipmentSlotStyle_c}">
+                                        <b:Interaction.Triggers>
+                                            <b:EventTrigger EventName="LocalFocusChanged">
+                                                <b:InvokeCommandAction Command="{Binding DataContext.UpdateEquipmentSlotNewFlagCommand, RelativeSource={RelativeSource AncestorType={x:Type ls:UIWidget}}}" CommandParameter="{Binding Path=SelectedItem.DataContext, RelativeSource={RelativeSource AncestorType=ls:LSListBox}}"/>
+                                            </b:EventTrigger>
+                                        </b:Interaction.Triggers>
+                                        <ls:LSListBoxItem DataContext="{Binding RangedMainHand}"/>
+                                        <ls:LSListBoxItem DataContext="{Binding RangedOffHand}"/>
+                                    </ls:LSListBox>
+                                </ls:LSListBoxItem>
+                            </ls:LSListBox>
+                        </ls:LSListBoxItem>
+                    </ls:LSListBox>
+                </ls:LSListBoxItem>
+
+                <!-- Statuses -->
+                <ls:LSListBoxItem VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,-63,0,0" Background="Transparent" BorderBrush="Transparent">
+                    <ls:LSListBoxItem.Resources>
+                        <System:Int16 x:Key="MaxStatusesOnEquipment">4</System:Int16>
+                        <System:Int16 x:Key="StatusIconWidth">88</System:Int16>
+                    </ls:LSListBoxItem.Resources>
+                    <ls:LSListBoxItem.Style>
+                        <Style TargetType="ls:LSListBoxItem" BasedOn="{StaticResource {x:Type ls:LSListBoxItem}}">
+                            <Setter Property="Visibility" Value="Visible"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Equipment.ShowAvailableEquipment}" Value="True">
+                                    <Setter Property="Visibility" Value="Hidden"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding StatusEffects.Count}" Value="0">
+                                    <Setter Property="Visibility" Value="Hidden"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ls:LSListBoxItem.Style>
+
+                    <ls:LSListBox ItemsSource="{Binding StatusEffects}" Height="108" ItemTemplate="{DynamicResource StatusTemplate}" Style="{StaticResource HorizontalControllerEquipmentListBoxStyle}" MaxWidth="{Binding Source={StaticResource StatusIconWidth}, Converter={StaticResource MultiplierConverter}, ConverterParameter={StaticResource MaxStatusesOnEquipment}}">
+                        <ls:LSListBox.ItemContainerStyle>
+                            <Style TargetType="ls:LSListBoxItem">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate>
+                                            <Border Focusable="False">
+                                                <ContentPresenter/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ls:LSListBox.ItemContainerStyle>
+                    </ls:LSListBox>
+                </ls:LSListBoxItem>
+
+                <!-- Melee -->
+                <ls:LSListBoxItem VerticalAlignment="Top" HorizontalAlignment="Center" Background="Transparent" BorderBrush="Transparent" Margin="0 22 0 -6">
+                    <ls:LSListBox Style="{StaticResource HorizontalControllerEquipmentListBoxStyle}" ItemContainerStyle="{StaticResource EquipmentStatStyle}">
+                        <ls:LSListBoxItem DataContext="{Binding Stats.MeleeAttackBonus}"/>
+                        <ls:LSListBoxItem DataContext="{Binding Stats.RangedAttackBonus}"/>
+                    </ls:LSListBox>
+                </ls:LSListBoxItem>
+
+                <!-- Spell -->
+                <ls:LSListBoxItem VerticalAlignment="Top" HorizontalAlignment="Center" Background="Transparent" BorderBrush="Transparent">
+                    <ls:LSListBox Style="{StaticResource HorizontalControllerEquipmentListBoxStyle}" ItemContainerStyle="{StaticResource EquipmentStatStyle}">
+                        <ls:LSListBoxItem DataContext="{Binding Stats.SpellAttackBonus}"/>
+                        <ls:LSListBoxItem DataContext="{Binding Stats.SpellDifficultyCheck}"/>
+                    </ls:LSListBox>
+                </ls:LSListBoxItem>
+
+                <!-- Stats -->
+                <ls:LSListBoxItem x:Name="StatsSection" VerticalAlignment="Top" HorizontalAlignment="Center" Background="Transparent" BorderBrush="Transparent">
+                    <ls:LSListBox Style="{StaticResource HorizontalControllerEquipmentListBoxStyle}">
+                        <ls:LSListBoxItem Background="Transparent" BorderBrush="Transparent">
+                            <ContentControl Focusable="False">
+                                <ContentControl.ToolTip>
+                                    <ls:LSTooltip Content="{Binding DataContext.Stats.MeleeAttackDamageTypeString,ElementName=StatsSection}" IsHitTestVisible="False" Placement="Top"/>
+                                </ContentControl.ToolTip>
+                                <Grid Width="160" Height="124" Margin="-2 0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="4*"/>
+                                        <RowDefinition Height="3*"/>
+                                    </Grid.RowDefinitions>
+                                    <Image Source="pack://application:,,,/GustavNoesisGUI;component/Assets/Equipment_c/c_stats_hightlight2.png" Stretch="None" Opacity="0.3" Grid.RowSpan="2"/>
+                                    <Image VerticalAlignment="Bottom" HorizontalAlignment="Center" Stretch="None" Source="{DynamicResource DamageSlashingIcon}" Grid.Column="0" Grid.Row="0">
+                                            <Image.Style>
+                                                <Style TargetType="Image">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Stats.MeleeAttackDamageType}" Value="Piercing">
+                                                            <Setter Property="Source" Value="{StaticResource DamagePiercingIcon}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Stats.MeleeAttackDamageType}" Value="Bludgeoning">
+                                                            <Setter Property="Source" Value="{StaticResource DamageBluntIcon}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Stats.MeleeAttackDamageType}" Value="Acid">
+                                                            <Setter Property="Source" Value="{StaticResource DamageAcidIcon}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Stats.MeleeAttackDamageType}" Value="Necrotic">
+                                                            <Setter Property="Source" Value="{StaticResource DamageNecroticIcon}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Stats.MeleeAttackDamageType}" Value="Fire">
+                                                            <Setter Property="Source" Value="{StaticResource DamageFireIcon}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Stats.MeleeAttackDamageType}" Value="Lightning">
+                                                            <Setter Property="Source" Value="{StaticResource DamageLightningIcon}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Stats.MeleeAttackDamageType}" Value="Cold">
+                                                            <Setter Property="Source" Value="{StaticResource DamageColdIcon}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Stats.MeleeAttackDamageType}" Value="Force">
+                                                            <Setter Property="Source" Value="{StaticResource DamageForceIcon}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Image.Style>
+                                    </Image>
+                                    <TextBlock VerticalAlignment="Top" HorizontalAlignment="Center" Text="{Binding Stats.MeleeAttackDamageRoll}" Style="{DynamicResource EquipmentStatFont}" Grid.Column="0" Grid.Row="1"/>
+                                </Grid>
+                                <ContentControl.Style>
+                                    <Style TargetType="ContentControl">
+                                        <Setter Property="ToolTipService.IsEnabled" Value="True"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Stats.MeleeAttackDamageTypeString, Converter={StaticResource NullToBoolTrueConverter}, ConverterParameter='EmptyString'}" Value="True">
+                                                <Setter Property="ToolTip" Value="{x:Null}"/>
+                                                <Setter Property="ToolTipService.IsEnabled" Value="False"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ContentControl.Style>
+                            </ContentControl>
+                        </ls:LSListBoxItem>
+
+                        <ls:LSListBoxItem Background="Transparent" BorderBrush="Transparent">
+                            <ContentControl ToolTipService.Placement="Top" Focusable="False">
+                                <ContentControl.ToolTip>
+                                    <ls:LSTooltip Content="{Binding DataContext.Stats.RangedAttackDamageTypeString,ElementName=StatsSection}"/>
+                                </ContentControl.ToolTip>
+                                <Grid Width="160" Height="124" Margin="-2 0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="4*"/>
+                                        <RowDefinition Height="3*"/>
+                                    </Grid.RowDefinitions>
+                                    <Image Source="pack://application:,,,/GustavNoesisGUI;component/Assets/Equipment_c/c_stats_hightlight2.png" Stretch="None" Opacity="0.3" Grid.RowSpan="2"/>
+                                    <Image VerticalAlignment="Bottom" HorizontalAlignment="Center" Stretch="None" Source="{DynamicResource DamageRangedIcon}" Grid.Column="0" Grid.Row="0">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Stats.RangedAttackDamageType}" Value="Piercing">
+                                                        <Setter Property="Source" Value="{DynamicResource DamagePiercingIcon}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
+                                    <TextBlock VerticalAlignment="Top" HorizontalAlignment="Center" Text="{Binding Stats.RangedAttackDamageRoll}" Style="{DynamicResource EquipmentStatFont}" Grid.Column="0" Grid.Row="1"/>
+                                </Grid>
+                                <ContentControl.Style>
+                                    <Style TargetType="ContentControl">
+                                        <Setter Property="ToolTipService.IsEnabled" Value="True"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Stats.RangedAttackDamageTypeString, Converter={StaticResource NullToBoolTrueConverter}, ConverterParameter='EmptyString'}" Value="True">
+                                                <Setter Property="ToolTip" Value="{x:Null}"/>
+                                                <Setter Property="ToolTipService.IsEnabled" Value="False"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ContentControl.Style>
+                            </ContentControl>
+                        </ls:LSListBoxItem>
+
+                        <ls:LSListBoxItem Background="Transparent" BorderBrush="Transparent">
+                            <ContentControl ToolTipService.Placement="Top" Focusable="False">
+                                <ContentControl.ToolTip>
+                                    <ls:LSTooltip Content="{Binding DataContext.Stats.ArmorClass,ElementName=StatsSection}"/>
+                                </ContentControl.ToolTip>
+                                <Grid Width="96" Height="124" Margin="-2 0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="4*"/>
+                                        <RowDefinition Height="3*"/>
+                                    </Grid.RowDefinitions>
+                                    <Image Source="pack://application:,,,/GustavNoesisGUI;component/Assets/Equipment_c/c_stats_hightlight3.png" Stretch="None" Opacity="0.3" Grid.RowSpan="2"/>
+                                    <Image VerticalAlignment="Bottom" HorizontalAlignment="Center" Stretch="None" Source="pack://application:,,,/GustavNoesisGUI;component/Assets/Shared/ico_AC.png" Grid.Column="0" Grid.Row="0"/>
+                                    <TextBlock VerticalAlignment="Top" HorizontalAlignment="Center" Text="{Binding Stats.ArmorClass.Value}" Style="{DynamicResource EquipmentStatFont}" Grid.Column="0" Grid.Row="1"/>
+                                </Grid>
+                            </ContentControl>
+                        </ls:LSListBoxItem>
+
+                        <ls:LSListBoxItem Background="Transparent" BorderBrush="Transparent">
+                            <ContentControl ToolTipService.Placement="Top" Focusable="False">
+                                <ContentControl.ToolTip>
+                                    <ls:LSTooltip Content="{Binding DataContext.Stats.Health,ElementName=StatsSection}"/>
+                                </ContentControl.ToolTip>
+                                <Grid Width="224" Height="124" Margin="-2 0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="4*"/>
+                                        <RowDefinition Height="3*"/>
+                                    </Grid.RowDefinitions>
+                                    <Image Source="pack://application:,,,/GustavNoesisGUI;component/Assets/Equipment_c/c_stats_hightlight4.png" Stretch="None" Opacity="0.3" Grid.RowSpan="2"/>
+                                    <Image HorizontalAlignment="Center" VerticalAlignment="Bottom" Stretch="None" Source="pack://application:,,,/GustavNoesisGUI;component/Assets/Shared/ico_health.png"  Grid.Column="0" Grid.Row="0"/>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.Column="0" Grid.Row="1">
+                                        <TextBlock Text="{Binding Stats.Health.Value}" Style="{DynamicResource EquipmentStatFont}"/>
+                                        <TextBlock Text="{Binding Stats.Health.Max, StringFormat='/{0}'}" Style="{DynamicResource EquipmentStatFont}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </ContentControl>
+                        </ls:LSListBoxItem>
+
+                        <ls:LSListBoxItem Background="Transparent" BorderBrush="Transparent">
+                            <ContentControl ToolTipService.Placement="Top" Focusable="False">
+                                <ContentControl.ToolTip>
+                                    <ls:LSTooltip Content="{Binding DataContext.Stats.MovementResource,ElementName=StatsSection}"/>
+                                </ContentControl.ToolTip>
+                                <Grid Width="96" Height="124" Margin="-2 0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="4*"/>
+                                        <RowDefinition Height="3*"/>
+                                    </Grid.RowDefinitions>
+                                    <Image Source="pack://application:,,,/GustavNoesisGUI;component/Assets/Equipment_c/c_stats_hightlight3.png" Stretch="None" Opacity="0.3" Grid.RowSpan="2"/>
+                                    <Image HorizontalAlignment="Center" VerticalAlignment="Bottom" Stretch="None" Source="pack://application:,,,/GustavNoesisGUI;component/Assets/Shared/ico_speed.png" Grid.Column="0" Grid.Row="0"/>
+                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Top" Text="{Binding Stats.MovementResource.MaxValue, Converter={StaticResource UnitConverter}, ConverterParameter='Distance Short'}" Style="{DynamicResource EquipmentStatFont}" Grid.Column="0" Grid.Row="1"/>
+                                </Grid>
+                            </ContentControl>
+                        </ls:LSListBoxItem>
+
+                    </ls:LSListBox>
+                </ls:LSListBoxItem>
+            </ls:LSListBox>           
+        </Grid>
+    </DataTemplate>
+
+    <Style x:Key="PartyMemberStyle_c" TargetType="ListBoxItem" BasedOn="{StaticResource PartyMemberStyle}">
+        <Setter Property="Margin" Value="5,0,10,0"/>
+    </Style>
+
+
+    <ControlTemplate x:Key="CarouselButtonTemplate" TargetType="ls:LSButton">
+        <Grid>
+            <Image x:Name="arrow" Source="{DynamicResource ButtonNormal}" Stretch="None"/>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="ls:MoveFocus.IsFocused" Value="True">
+                <Setter Property="Source" Value="{DynamicResource ButtonHighlight}" TargetName="arrow"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Source" Value="{DynamicResource ButtonPressed}" TargetName="arrow"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Source" Value="{DynamicResource ButtonDisabled}" TargetName="arrow"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <Style x:Key="CarouselTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{DynamicResource MediumFontSize}"/>
+        <Setter Property="FontWeight" Value="Regular"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Foreground" Value="{DynamicResource LS_PrimaryColor}"/>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Border}}}" Value="True">
+                <Setter Property="Foreground" Value="{DynamicResource LS_alertTxtColor}"/>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="ToggleMultiSelectButtonStyle" TargetType="ls:LSButton">
+        <Setter Property="BoundEvent" Value="SpeakerSelect"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ls:LSButton">
+                    <StackPanel x:Name="MultiSelectRoot" Orientation="Horizontal" Tag="{Binding Tag,RelativeSource={RelativeSource TemplatedParent}}">
+                        <ContentPresenter ContentTemplate="{StaticResource ControllerButtonHint}" Content="{Binding CurrentPlayer.UIData.InputEvents, Converter={StaticResource FindInputEventConverter}, ConverterParameter='SpeakerSelect'}" Tag="{Binding Source=hd0c08193ga7f2g4a7eg8225g63748c7b3096,Converter={StaticResource TranslatedStringConverter}}"/>
+
+                        <TextBlock x:Name="CountText" Text="{Binding Content.Count,RelativeSource={RelativeSource TemplatedParent},StringFormat={}({0})}" VerticalAlignment="Center" FontSize="{StaticResource BigFontSize}" Style="{StaticResource BtnHint.StrokedTextStyle}"/>
+                        <b:Interaction.Triggers>
+                            <b:EventTrigger EventName="Click" SourceObject="{Binding RelativeSource={RelativeSource TemplatedParent}}">
+                                <ls:ToggleListBoxItemSelected TargetObject="{Binding Tag,ElementName=MultiSelectRoot}"/>
+                            </b:EventTrigger>
+                            <b:PropertyChangedTrigger Binding="{Binding Tag,ElementName=MultiSelectRoot}">
+                                <b:Interaction.Behaviors>
+                                    <b:ConditionBehavior>
+                                        <b:ConditionalExpression>
+                                            <b:ComparisonCondition LeftOperand="{Binding Path=IsPressed, RelativeSource={RelativeSource TemplatedParent}}" Operator="Equal" RightOperand="True"/>
+                                        </b:ConditionalExpression>
+                                    </b:ConditionBehavior>
+                                </b:Interaction.Behaviors>
+                                <ls:ToggleListBoxItemSelected TargetObject="{Binding Tag,ElementName=MultiSelectRoot}"/>
+                            </b:PropertyChangedTrigger>
+                        </b:Interaction.Triggers>
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Content" Value="0" >
+                            <Setter TargetName="CountText" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>
