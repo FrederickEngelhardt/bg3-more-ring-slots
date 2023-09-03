@@ -7416,6 +7416,8 @@ Source="{StaticResource SavingThrowDice}" Opacity="1" Margin="0,52,0,0">
                             </Grid>
                             <ls:LSButton Margin="0,24" Style="{StaticResource newEquipmentSlotStyle}" Panel.ZIndex="{Binding IsSelecting, Converter={StaticResource BoolToIntConverter}, ConverterParameter=20}" DataContext="{Binding Equipment.Underwear}"/>
                             <ls:LSButton Style="{StaticResource newEquipmentSlotStyle}" Panel.ZIndex="{Binding IsSelecting, Converter={StaticResource BoolToIntConverter}, ConverterParameter=20}" DataContext="{Binding Equipment.Amulet}"/>
+                            <ls:LSButton Style="{StaticResource newEquipmentSlotStyle}" Panel.ZIndex="{Binding IsSelecting, Converter={StaticResource BoolToIntConverter}, ConverterParameter=20}" DataContext="{Binding Equipment.Amulet}"/>
+                            <ls:LSButton Style="{StaticResource newEquipmentSlotStyle}" Panel.ZIndex="{Binding IsSelecting, Converter={StaticResource BoolToIntConverter}, ConverterParameter=20}" DataContext="{Binding Equipment.Amulet}"/>
                             <ls:LSButton Style="{StaticResource newEquipmentSlotStyle}" Panel.ZIndex="{Binding IsSelecting, Converter={StaticResource BoolToIntConverter}, ConverterParameter=20}" DataContext="{Binding Equipment.Ring}"/>
                             <ls:LSButton Style="{StaticResource newEquipmentSlotStyle}" Panel.ZIndex="{Binding IsSelecting, Converter={StaticResource BoolToIntConverter}, ConverterParameter=20}" DataContext="{Binding Equipment.Ring2}"/>
                             <!-- New RING SLOTS -->
